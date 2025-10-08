@@ -93,7 +93,7 @@ def get_foodora_prices():
         total_cost = price + total_hidden
 
         data.append({
-            "platform": "Wolt",
+            "platform": "Foodora",
             "webshop": {
                 "id": webshop["id"],
                 "name": webshop["name"],

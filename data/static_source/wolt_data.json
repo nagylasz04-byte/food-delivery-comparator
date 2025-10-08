@@ -1,49 +1,56 @@
-{
-  "platform": "Wolt (Static Mock)",
-  "shipping_address": {
-    "street": "Minta utca 1.",
-    "postal_code": "1000"
-  },
-  "restaurants": [
-    {
-      "name": "Pizza Forte",
+[
+  {
+    "platform": "Wolt",
+    "webshop": {
       "id": "PF101",
-      "base_delivery_fee": 690,
-      "distance_fee": 0,
-      "service_fee_rate": 0.05,
-      "service_fee_max": 990,
-      "menu": [
-        {
-          "name": "Húsimádó Pizza (32cm)",
-          "price": 3490,
-          "sku": "PIZZA01"
-        },
-        {
-          "name": "Sült krumpli",
-          "price": 890,
-          "sku": "KUMPLI01"
-        }
-      ]
+      "name": "Pizza Forte",
+      "address": "Budapest, Andrássy út 12."
     },
-    {
-      "name": "Burger King",
+    "food": {
+      "id": "PIZZA01",
+      "name": "Húsimádó Pizza (32cm)",
+      "description": "",
+      "category": "pizza",
+      "allergens": [],
+      "image_url": ""
+    },
+    "webshop_food_info": {
+      "price": 3490,
+      "delivery_time": "30 perc",
+      "rating": null,
+      "promotion": null
+    },
+    "hidden_costs": [
+      {"type": "delivery", "amount": 690},
+      {"type": "packaging", "amount": 150}
+    ],
+    "total_cost": 4330
+  },
+  {
+    "platform": "Wolt",
+    "webshop": {
       "id": "BK202",
-      "base_delivery_fee": 590,
-      "distance_fee": 200,
-      "service_fee_rate": 0.0,
-      "service_fee_max": 0,
-      "menu": [
-        {
-          "name": "Whopper menü",
-          "price": 2950,
-          "sku": "WHRMNU01"
-        },
-        {
-          "name": "Fagylalt",
-          "price": 450,
-          "sku": "FAGYLALT01"
-        }
-      ]
-    }
-  ]
-}
+      "name": "Burger King",
+      "address": "Debrecen, Piac utca 45."
+    },
+    "food": {
+      "id": "WHRMNU01",
+      "name": "Whopper menü",
+      "description": "",
+      "category": "burger",
+      "allergens": [],
+      "image_url": ""
+    },
+    "webshop_food_info": {
+      "price": 2950,
+      "delivery_time": "1 óra",
+      "rating": null,
+      "promotion": null
+    },
+    "hidden_costs": [
+      {"type": "delivery", "amount": 590},
+      {"type": "packaging", "amount": 200}
+    ],
+    "total_cost": 3740
+  }
+]

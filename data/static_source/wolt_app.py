@@ -54,5 +54,5 @@ if __name__ == '__main__':
     # A debug=True beállítással automatikusan újraindul, ha változtatunk a kódon.
     print(f"Flask Mock Server elindult a http://127.0.0.1:5000/api/wolt/prices címen.")
     # Konzolra írja a szerver elérésének URL-jét.
-    app.run(debug=True)
+    app.run(port=5000, debug=True)
     # Elindítja a Flask szervert alapértelmezett 5000-es porton, engedélyezve a debug módot.
