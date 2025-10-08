@@ -8,7 +8,7 @@ foods = ["Margherita pizza", "Whopper Menü", "Gyros tál", "Cézár saláta", "
 restaurants = ["Pizza Forte", "Burger King", "Gyros City", "Saláta Bár", "Sushi World"]
 
 @app.route('/api/foodora/prices', methods=['GET'])
-def get_prices():
+def get_foodora_prices():
     data = []
     for _ in range(5):  # 5 étel random generálása
         food = random.choice(foods)
@@ -29,4 +29,6 @@ def get_prices():
     return jsonify(data)
 
 if __name__ == "__main__":
+    print(f"Flask Mock Server elindult a http://127.0.0.1:5005/api/foodora/prices címen.")
     app.run(port=5002, debug=True)
+
