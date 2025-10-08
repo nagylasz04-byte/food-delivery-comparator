@@ -1,0 +1,49 @@
+{
+  "platform": "Wolt (Statikus Mock)",
+  "szallitasi_cim": {
+    "utca": "Minta utca 1.",
+    "iranyitoszam": "1000"
+  },
+  "etterem_adatok": [
+    {
+      "etterem_nev": "Pizza Forte",
+      "etterem_azonosito": "PF101",
+      "alap_szallitasi_dij": 690,
+      "tavolsag_alapu_dij": 0,
+      "szerviz_dij_szazalek": 0.05,
+      "szerviz_dij_max": 990,
+      "etlap": [
+        {
+          "etel_nev": "Húsimádó Pizza (32cm)",
+          "ar": 3490,
+          "azonosito": "PIZZA01"
+        },
+        {
+          "etel_nev": "Sült krumpli",
+          "ar": 890,
+          "azonosito": "KUMPLI01"
+        }
+      ]
+    },
+    {
+      "etterem_nev": "Burger King",
+      "etterem_azonosito": "BK202",
+      "alap_szallitasi_dij": 590,
+      "tavolsag_alapu_dij": 200,
+      "szerviz_dij_szazalek": 0.0,
+      "szerviz_dij_max": 0,
+      "etlap": [
+        {
+          "etel_nev": "Whopper menü",
+          "ar": 2950,
+          "azonosito": "WHRMNU01"
+        },
+        {
+          "etel_nev": "Fagylalt",
+          "ar": 450,
+          "azonosito": "FAGYLALT01"
+        }
+      ]
+    }
+  ]
+}
