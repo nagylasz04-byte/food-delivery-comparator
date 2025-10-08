@@ -1,47 +1,47 @@
 {
-  "platform": "Wolt (Statikus Mock)",
-  "szallitasi_cim": {
-    "utca": "Minta utca 1.",
-    "iranyitoszam": "1000"
+  "platform": "Wolt (Static Mock)",
+  "shipping_address": {
+    "street": "Minta utca 1.",
+    "postal_code": "1000"
   },
-  "etterem_adatok": [
+  "restaurants": [
     {
-      "etterem_nev": "Pizza Forte",
-      "etterem_azonosito": "PF101",
-      "alap_szallitasi_dij": 690,
-      "tavolsag_alapu_dij": 0,
-      "szerviz_dij_szazalek": 0.05,
-      "szerviz_dij_max": 990,
-      "etlap": [
+      "name": "Pizza Forte",
+      "id": "PF101",
+      "base_delivery_fee": 690,
+      "distance_fee": 0,
+      "service_fee_rate": 0.05,
+      "service_fee_max": 990,
+      "menu": [
         {
-          "etel_nev": "Húsimádó Pizza (32cm)",
-          "ar": 3490,
-          "azonosito": "PIZZA01"
+          "name": "Húsimádó Pizza (32cm)",
+          "price": 3490,
+          "sku": "PIZZA01"
         },
         {
-          "etel_nev": "Sült krumpli",
-          "ar": 890,
-          "azonosito": "KUMPLI01"
+          "name": "Sült krumpli",
+          "price": 890,
+          "sku": "KUMPLI01"
         }
       ]
     },
     {
-      "etterem_nev": "Burger King",
-      "etterem_azonosito": "BK202",
-      "alap_szallitasi_dij": 590,
-      "tavolsag_alapu_dij": 200,
-      "szerviz_dij_szazalek": 0.0,
-      "szerviz_dij_max": 0,
-      "etlap": [
+      "name": "Burger King",
+      "id": "BK202",
+      "base_delivery_fee": 590,
+      "distance_fee": 200,
+      "service_fee_rate": 0.0,
+      "service_fee_max": 0,
+      "menu": [
         {
-          "etel_nev": "Whopper menü",
-          "ar": 2950,
-          "azonosito": "WHRMNU01"
+          "name": "Whopper menü",
+          "price": 2950,
+          "sku": "WHRMNU01"
         },
         {
-          "etel_nev": "Fagylalt",
-          "ar": 450,
-          "azonosito": "FAGYLALT01"
+          "name": "Fagylalt",
+          "price": 450,
+          "sku": "FAGYLALT01"
         }
       ]
     }
