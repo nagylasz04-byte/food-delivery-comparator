@@ -2,7 +2,10 @@ from flask import Flask, jsonify, request
 import random
 import time
 
+from flask_cors import CORS  # <-- ÚJ SOR
+
 app = Flask(__name__)
+CORS(app)  # <-- ÚJ SOR: Engedélyezi a CORS-t minden végpontra
 
 # Konstans minták (magyar nevek és címötletek)
 SAMPLE_WEBSHOP_NEVEK = [

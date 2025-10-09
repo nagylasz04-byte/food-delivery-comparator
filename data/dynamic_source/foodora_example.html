@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foodora Mock Webshop</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d40063;
+      margin-bottom: 30px;
+    }
+
+    #data-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 15px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .price {
+      color: #d40063;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    .promotion {
+      color: #007bff;
+      font-weight: 500;
+    }
+
+    .hidden-costs {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #777;
+    }
+
+    button {
+      display: block;
+      margin: 0 auto 30px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #d40063;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #b10054;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍔 Foodora Mock Webshop</h1>
+
+  <button onclick="loadData()">🔄 Adatok frissítése</button>
+
+  <div id="data-container">Betöltés...</div>
+
+  <div class="footer">
+    <p>Flask Mock API – Foodora példaprojekt</p>
+  </div>
+
+  <script>
+    async function loadData() {
+      const container = document.getElementById('data-container');
+      container.innerHTML = "🔄 Adatok betöltése...";
+
+      try {
+        const response = await fetch('http://127.0.0.1:5002/api/foodora/prices');
+        const data = await response.json();
+
+        container.innerHTML = "";
+
+        data.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <img src="${item.food.image_url}" alt="${item.food.name}">
+            <div class="card-content">
+              <h3>${item.food.name}</h3>
+              <p><strong>Webshop:</strong> ${item.webshop.name} (${item.webshop.address})</p>
+              <p><strong>Kategória:</strong> ${item.food.category}</p>
+              <p><strong>Leírás:</strong> ${item.food.description}</p>
+              <p class="price">💰 Ár: ${item.webshop_food_info.price} Ft</p>
+              <p><strong>Teljes ár (rejtett költségekkel):</strong> ${item.total_cost} Ft</p>
+              <p>⏱️ Szállítási idő: ${item.webshop_food_info.delivery_time}</p>
+              <p>⭐ Értékelés: ${item.webshop_food_info.rating}</p>
+              <p class="promotion">${item.webshop_food_info.promotion || ""}</p>
+              <div class="hidden-costs">
+                <strong>Rejtett költségek:</strong>
+                <ul>
+                  ${item.hidden_costs.map(c => `<li>${c.type}: ${c.amount} Ft</li>`).join("")}
+                </ul>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (error) {
+        container.innerHTML = "❌ Hiba történt az adatok betöltésekor.";
+        console.error(error);
+      }
+    }
+
+    // Oldal betöltésekor automatikusan lekéri az adatokat
+    loadData();
+  </script>
+</body>
+</html>

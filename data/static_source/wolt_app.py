@@ -7,7 +7,10 @@ from pathlib import Path
 from flask import Flask, jsonify, request
 
 # 1. Flask alkalmazás inicializálása
+from flask_cors import CORS  # <-- ÚJ SOR
+
 app = Flask(__name__)
+CORS(app)  # <-- ÚJ SOR: Engedélyezi a CORS-t minden végpontra
 
 # 2. A statikus adatok betöltése a JSON fájlból
 # A DATA_FILE elérési útja most a szkript könyvtárához képest van feloldva,
