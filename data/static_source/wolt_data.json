@@ -1,56 +1,85 @@
-[
-  {
-    "platform": "Wolt",
-    "webshop": {
-      "id": "PF101",
-      "name": "Pizza Forte",
-      "address": "Budapest, Andrássy út 12."
+{
+  "WEBSHOP": [
+    { "ID": 1, "Név": "Pizza Forte", "Cím": "Budapest, Andrássy út 12." },
+    { "ID": 2, "Név": "Burger King", "Cím": "Debrecen, Piac utca 45." }
+  ],
+
+  "WEBSHOP_KÖLTSÉG": [
+    { "ID": 1, "WEBSHOP_ID": 1, "Költség_típus": "szállítás", "Összeg": 690 },
+    { "ID": 2, "WEBSHOP_ID": 1, "Költség_típus": "csomagolás", "Összeg": 150 },
+    { "ID": 3, "WEBSHOP_ID": 1, "Költség_típus": "borravaló", "Összeg": 300 },
+    { "ID": 4, "WEBSHOP_ID": 2, "Költség_típus": "szállítás", "Összeg": 590 },
+    { "ID": 5, "WEBSHOP_ID": 2, "Költség_típus": "csomagolás", "Összeg": 200 },
+    { "ID": 6, "WEBSHOP_ID": 2, "Költség_típus": "borravaló", "Összeg": 0 }
+  ],
+
+  "ÉTEL": [
+    {
+      "ID": 1001,
+      "Név": "Húsimádó Pizza (32cm)",
+  "Leírás": "Paradicsomos alap, mozzarella és választható feltétek",
+  "Kategória": "pizza",
+      "Kép_url": "https://example.com/margherita.jpg"
     },
-    "food": {
-      "id": "PIZZA01",
-      "name": "Húsimádó Pizza (32cm)",
-      "description": "",
-      "category": "pizza",
-      "allergens": [],
-      "image_url": ""
+    {
+      "ID": 1002,
+      "Név": "Sült krumpli",
+  "Leírás": "Ropogós sült krumpli",
+  "Kategória": "kiegészítő",
+      "Kép_url": "https://example.com/fries.jpg"
     },
-    "webshop_food_info": {
-      "price": 3490,
-      "delivery_time": "30 perc",
-      "rating": null,
-      "promotion": null
+    {
+      "ID": 1003,
+      "Név": "Whopper menü",
+  "Leírás": "Marhahúsos burger sült krumplival és itallal",
+  "Kategória": "burger",
+      "Kép_url": "https://example.com/whopper.jpg"
     },
-    "hidden_costs": [
-      {"type": "delivery", "amount": 690},
-      {"type": "packaging", "amount": 150}
-    ],
-    "total_cost": 4330
-  },
-  {
-    "platform": "Wolt",
-    "webshop": {
-      "id": "BK202",
-      "name": "Burger King",
-      "address": "Debrecen, Piac utca 45."
+    {
+      "ID": 1004,
+      "Név": "Fagylalt",
+  "Leírás": "Vaníliás fagylalt",
+  "Kategória": "desszert",
+      "Kép_url": "https://example.com/icecream.jpg"
+    }
+  ],
+
+  "WEBSHOP_ÉTEL_INFO": [
+    {
+      "ID": 1,
+      "ÉTEL_ID": 1001,
+      "WEBSHOP_ID": 1,
+      "Ár": 3490,
+      "Szállítási_idő": "30 perc",
+      "Felhaszn_értékelések": 4.8,
+  "Promóció": "Ingyenes szállítás"
     },
-    "food": {
-      "id": "WHRMNU01",
-      "name": "Whopper menü",
-      "description": "",
-      "category": "burger",
-      "allergens": [],
-      "image_url": ""
+    {
+      "ID": 2,
+      "ÉTEL_ID": 1002,
+      "WEBSHOP_ID": 1,
+      "Ár": 890,
+      "Szállítási_idő": "30 perc",
+      "Felhaszn_értékelések": 4.2,
+      "Promóció": null
     },
-    "webshop_food_info": {
-      "price": 2950,
-      "delivery_time": "1 óra",
-      "rating": null,
-      "promotion": null
+    {
+      "ID": 3,
+      "ÉTEL_ID": 1003,
+      "WEBSHOP_ID": 2,
+      "Ár": 2950,
+      "Szállítási_idő": "1 óra",
+      "Felhaszn_értékelések": 4.5,
+  "Promóció": "Ingyenes fagylalt"
     },
-    "hidden_costs": [
-      {"type": "delivery", "amount": 590},
-      {"type": "packaging", "amount": 200}
-    ],
-    "total_cost": 3740
-  }
-]
+    {
+      "ID": 4,
+      "ÉTEL_ID": 1004,
+      "WEBSHOP_ID": 2,
+      "Ár": 450,
+      "Szállítási_idő": "1 óra",
+      "Felhaszn_értékelések": 4.0,
+      "Promóció": null
+    }
+  ]
+}
