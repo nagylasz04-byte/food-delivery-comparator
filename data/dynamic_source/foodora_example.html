@@ -114,11 +114,35 @@
 
         container.innerHTML = "";
 
-        data.forEach(item => {
+        // Átalakítjuk a normalizált táblákat egy items tömbbé
+        const shopsById = Object.fromEntries((data.WEBSHOP || []).map(s => [s.ID, s]));
+        const foodsById = Object.fromEntries((data.ÉTEL || []).map(f => [f.ID, f]));
+
+        const hiddenCostsByShop = (data.WEBSHOP_KÖLTSÉG || []).reduce((acc, c) => {
+          acc[c.WEBSHOP_ID] = acc[c.WEBSHOP_ID] || [];
+          acc[c.WEBSHOP_ID].push({ type: c.Költség_típus, amount: c.Összeg });
+          return acc;
+        }, {});
+
+        const items = (data.WEBSHOP_ÉTEL_INFO || []).map(info => {
+          const shop = shopsById[info.WEBSHOP_ID] || { Név: 'Ismeretlen', Cím: '' };
+          const food = foodsById[info.ÉTEL_ID] || { Név: 'Ismeretlen', Kép_url: '' };
+          const hidden = hiddenCostsByShop[info.WEBSHOP_ID] || [];
+          const totalCost = info.Ár + hidden.reduce((s, c) => s + (c.amount || 0), 0);
+          return {
+            webshop_food_info: { price: info.Ár, delivery_time: info.Szállítási_idő, promotion: info.Promóció, rating: info.Felhaszn_értékelések },
+            webshop: { name: shop.Név, address: shop.Cím },
+            food: { name: food.Név, description: food.Leírás, category: food.Kategória, image_url: food.Kép_url },
+            hidden_costs: hidden,
+            total_cost: totalCost
+          };
+        });
+
+        items.forEach(item => {
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <img src="${item.food.image_url}" alt="${item.food.name}">
+            <img src="${item.food.image_url || 'https://via.placeholder.com/400x200?text=Foodora+Image'}" alt="${item.food.name}">
             <div class="card-content">
               <h3>${item.food.name}</h3>
               <p><strong>Webshop:</strong> ${item.webshop.name} (${item.webshop.address})</p>
