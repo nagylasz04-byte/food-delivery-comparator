@@ -1,0 +1,30 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Étel űrlap</h1>
+
+<form method="post">
+  {% csrf_token %}
+  <div>
+    <label for="{{ form.nev.id_for_label }}">Név</label><br>
+    {{ form.nev }}
+  </div>
+  <div>
+    <label for="{{ form.kategoria.id_for_label }}">Kategória</label><br>
+    {{ form.kategoria }}
+  </div>
+  <div>
+    <label for="{{ form.leiras.id_for_label }}">Leírás</label><br>
+    {{ form.leiras }}
+  </div>
+  <div>
+    <label for="{{ form.kep_url.id_for_label }}">Kép URL</label><br>
+    {{ form.kep_url }}
+    <p style="font-size:12px;color:#666">Adj meg teljes képlinket (https://...).</p>
+  </div>
+
+  <p>
+    <button type="submit">Mentés</button>
+    <a href="{% url 'catalog:etel_list' %}">Mégse</a>
+  </p>
+</form>
+{% endblock %}

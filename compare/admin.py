@@ -4,9 +4,9 @@ from .models import EtteremEtelInfo, Mentes
 @admin.register(EtteremEtelInfo)
 class EtteremEtelInfoAdmin(admin.ModelAdmin):
     list_display = ("etel", "etterem", "ar", "szallitas_ido", "felhaszn_ertekelesek", "promocio")
-    list_filter  = ("etterem__platform",)
     search_fields = ("etel__nev", "etterem__nev")
-    autocomplete_fields = ("etel", "etterem")
+    list_filter = ("etterem__platform",)
+    autocomplete_fields = ("etel", "etterem")   # <- kell Etel/Etterem admin + search_fields
     ordering = ("etel", "etterem")
 
 @admin.register(Mentes)

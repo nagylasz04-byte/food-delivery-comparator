@@ -4,9 +4,9 @@ from .models import Felhasznalo, Jog, FelhJog
 @admin.register(Felhasznalo)
 class FelhasznaloAdmin(admin.ModelAdmin):
     list_display = ("username", "nev", "email", "kedvenc_etterem", "is_active", "is_staff")
-    list_filter = ("is_active", "is_staff", "is_superuser")
     search_fields = ("username", "nev", "email")
-    autocomplete_fields = ("kedvenc_etterem",)  # ha FK az Etteremre
+    list_filter = ("is_active", "is_staff", "is_superuser")
+    autocomplete_fields = ("kedvenc_etterem",)   # <- kell hozzá Etterem admin + search_fields
     ordering = ("username",)
 
 @admin.register(Jog)

@@ -4,12 +4,12 @@ from .models import Etterem, Etel
 @admin.register(Etterem)
 class EtteremAdmin(admin.ModelAdmin):
     list_display = ("nev", "cim", "platform")
-    list_filter  = ("platform",)
-    search_fields = ("nev", "cim")
+    search_fields = ("nev", "cim")            # <- fontos az autocomplete-hez
+    list_filter = ("platform",)
     ordering = ("nev",)
 
 @admin.register(Etel)
 class EtelAdmin(admin.ModelAdmin):
     list_display = ("nev", "kategoria")
-    search_fields = ("nev", "kategoria", "leiras")
+    search_fields = ("nev", "kategoria", "leiras")   # <- fontos az autocomplete-hez
     ordering = ("nev",)

@@ -3,15 +3,12 @@
 <h1>{{ object.nev }}</h1>
 <p><b>Kategória:</b> {{ object.kategoria|default:"–" }}</p>
 <p><b>Leírás:</b><br>{{ object.leiras|linebreaksbr|default:"–" }}</p>
-
 {% if object.kep_url %}
-  <p><img src="{{ object.kep_url }}" alt="{{ object.nev }}" style="max-width:420px; border-radius:10px;"></p>
+  <p><img src="{{ object.kep_url }}" alt="{{ object.nev }}" style="max-width:420px;border-radius:10px;"></p>
 {% endif %}
 
 {% if user.is_authenticated and user.is_staff %}
-  <p>
-    <a href="{% url 'catalog:etel_update' object.pk %}">Szerkesztés</a> |
-    <a href="{% url 'catalog:etel_delete' object.pk %}">Törlés</a>
-  </p>
+  <p><a href="{% url 'catalog:etel_update' object.pk %}">Szerkesztés</a> |
+     <a href="{% url 'catalog:etel_delete' object.pk %}">Törlés</a></p>
 {% endif %}
 {% endblock %}
