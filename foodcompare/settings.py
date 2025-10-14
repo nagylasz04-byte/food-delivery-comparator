@@ -1,15 +1,14 @@
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = "django-insecure-your-secret-key"  # ide majd jöhet saját
-
+# --- Alapok ---
+BASE_DIR = Path(__file__).resolve().parent.parent  # .../foodcompare/ -> projekt gyökér
+SECRET_KEY = "django-insecure-replace-me-for-production"
 DEBUG = True
-
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
-# --- Alap Django alkalmazások + saját appok ---
+# --- Telepített alkalmazások ---
 INSTALLED_APPS = [
+    # Django core
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -17,17 +16,20 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # saját appok
+    # Saját appok
     "users",
     "catalog",
     "billing",
     "compare",
 ]
 
-# --- Köztes rétegek (Middleware) ---
+# Egyedi user modell (ahogy korábban létrehoztuk)
+AUTH_USER_MODEL = "users.Felhasznalo"
+
+# --- Middleware (sorrend fontos) ---
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",  # fontos: az auth előtt legyen!
+    "django.contrib.sessions.middleware.SessionMiddleware",  # auth előtt legyen
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -37,11 +39,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "foodcompare.urls"
 
-# --- Template beállítások (adminhoz és saját oldalakhoz is kell) ---
+# --- Templating (admin + saját sablonok) ---
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # ha van templates mappád a projektben
+        # a projekt gyökérben lévő "templates" mappa:
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -56,7 +59,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "foodcompare.wsgi.application"
 
-# --- Adatbázis (SQLite) ---
+# --- Adatbázis (SQLite fejlesztéshez) ---
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -64,10 +67,11 @@ DATABASES = {
     }
 }
 
-# --- Felhasználó modell (egyedi) ---
-AUTH_USER_MODEL = "users.Felhasznalo"
+# --- Bejelentkezés/átirányítások ---
+LOGIN_URL = "/admin/login/"
+LOGOUT_REDIRECT_URL = "/"
 
-# --- Nyelv és időzóna ---
+# --- Lokálizáció ---
 LANGUAGE_CODE = "hu-hu"
 TIME_ZONE = "Europe/Budapest"
 USE_I18N = True
@@ -75,5 +79,8 @@ USE_TZ = True
 
 # --- Statikus fájlok ---
 STATIC_URL = "static/"
+# opcionális: ha van saját /static mappád a projekt gyökérben
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# --- Egyebek ---
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

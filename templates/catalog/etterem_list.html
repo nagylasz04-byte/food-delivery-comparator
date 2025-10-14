@@ -7,20 +7,30 @@
 {% endif %}
 
 <table>
-  <tr><th>Név</th><th>Platform</th><th>Műveletek</th></tr>
+  <tr>
+    <th>Név</th>
+    <th>Cím</th>
+    <th>Platform</th>
+    {% if user.is_authenticated and user.is_staff %}<th>Műveletek</th>{% endif %}
+  </tr>
   {% for o in object_list %}
     <tr>
       <td><a href="{% url 'catalog:etterem_detail' o.pk %}">{{ o.nev }}</a></td>
+      <td>{{ o.cim }}</td>
       <td>{{ o.get_platform_display }}</td>
-      <td>
-        {% if user.is_authenticated and user.is_staff %}
+      {% if user.is_authenticated and user.is_staff %}
+        <td>
           <a href="{% url 'catalog:etterem_update' o.pk %}">Szerk.</a> |
           <a href="{% url 'catalog:etterem_delete' o.pk %}">Törlés</a>
-        {% endif %}
-      </td>
+        </td>
+      {% endif %}
     </tr>
   {% empty %}
-    <tr><td colspan="3">Nincs adat.</td></tr>
+    <tr>
+      <td colspan="{% if user.is_authenticated and user.is_staff %}4{% else %}3{% endif %}">
+        Nincs adat.
+      </td>
+    </tr>
   {% endfor %}
 </table>
 {% endblock %}

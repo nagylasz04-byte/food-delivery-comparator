@@ -1,0 +1,92 @@
+{% load static %}
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <title>FoodCompare — Kezdőlap</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <div class="container">
+
+    <div class="nav">
+      <a href="{% url 'home' %}">Kezdőlap</a>
+      <a href="/etterem/">Éttermek</a>
+      <a href="/etel/">Ételek</a>
+      <a href="/koltseg/">Költségek</a>
+      <a href="/info/">Étel-infó</a>
+      <a href="/mentes/">Mentések</a>
+      {% if user.is_authenticated %}
+        <a href="/admin/">Admin</a>
+      {% else %}
+        <a href="/admin/login/">Bejelentkezés</a>
+      {% endif %}
+    </div>
+
+    <section class="hero">
+      <div>
+        <div class="h1">
+          Ételfutár-appok <span class="grad">okos összehasonlítása</span><br>
+          valós költségekkel.
+        </div>
+        <p class="lead">
+          Add meg a címet, az éttermet és a rendelést – mi kiszámoljuk, hol a
+          legolcsóbb a teljes kosár <span class="kbd">szállítással</span>,
+          <span class="kbd">csomagolással</span> és minden rejtett díjjal együtt.
+        </p>
+        <div class="cta">
+          <a class="btn" href="/info/">Kezdd az összehasonlítást</a>
+          <a class="btn secondary" href="/etterem/">Böngéssz éttermeket</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Gyors áttekintés</h3>
+        <p>• Több platform árainak egy nézetben.<br>
+           • Rejtett költségek kezelése (szállítás, csomagolás, borravaló).<br>
+           • Mentés kedvencekbe, későbbi visszanézéshez.</p>
+      </div>
+    </section>
+
+    <section class="cardgrid">
+      <div class="card">
+        <h3>Éttermek</h3>
+        <p>CRUD az éttermekhez, platform és cím szerint.</p>
+        <p style="margin-top:10px"><a class="btn secondary" href="/etterem/">Megnyitás</a></p>
+      </div>
+      <div class="card">
+        <h3>Ételek (read-only)</h3>
+        <p>Kínálat áttekintése kategóriákkal és képekkel.</p>
+        <p style="margin-top:10px"><a class="btn secondary" href="/etel/">Megnyitás</a></p>
+      </div>
+      <div class="card">
+        <h3>Rejtett költségek</h3>
+        <p>Szállítás, csomagolás, borravaló – éttermenként.</p>
+        <p style="margin-top:10px"><a class="btn secondary" href="/koltseg/">Megnyitás</a></p>
+      </div>
+      <div class="card">
+        <h3>Étel-információk</h3>
+        <p>Ár, szállítási idő, promóciók platformonként.</p>
+        <p style="margin-top:10px"><a class="btn secondary" href="/info/">Megnyitás</a></p>
+      </div>
+      <div class="card">
+        <h3>Mentések</h3>
+        <p>Kedvenc ételek és ajánlatok egy helyen.</p>
+        <p style="margin-top:10px"><a class="btn secondary" href="/mentes/">Megnyitás</a></p>
+      </div>
+      <div class="card">
+        <h3>Admin</h3>
+        <p>Jogosultság-alapú szerkesztés és felügyelet.</p>
+        <p style="margin-top:10px">
+          {% if user.is_authenticated %}
+            <a class="btn" href="/admin/">Admin felület</a>
+          {% else %}
+            <a class="btn" href="/admin/login/">Bejelentkezés</a>
+          {% endif %}
+        </p>
+      </div>
+    </section>
+
+    <p class="footer">© {{ now|date:"Y" }} FoodCompare — Szakdolgozat | Debreceni Egyetem, IK</p>
+  </div>
+</body>
+</html>

@@ -3,11 +3,15 @@ from .models import EtteremEtelInfo, Mentes
 
 @admin.register(EtteremEtelInfo)
 class EtteremEtelInfoAdmin(admin.ModelAdmin):
-    list_display=("etel","etterem","ar","szallitas_ido","felhaszn_ertekelesek","promocio")
-    list_filter=("etterem__platform",)
-    search_fields=("etel__nev","etterem__nev")
+    list_display = ("etel", "etterem", "ar", "szallitas_ido", "felhaszn_ertekelesek", "promocio")
+    list_filter  = ("etterem__platform",)
+    search_fields = ("etel__nev", "etterem__nev")
+    autocomplete_fields = ("etel", "etterem")
+    ordering = ("etel", "etterem")
 
 @admin.register(Mentes)
 class MentesAdmin(admin.ModelAdmin):
-    list_display=("felhasznalo","etel","letrehozva")
-    search_fields=("felhasznalo__username","etel__nev")
+    list_display = ("felhasznalo", "etel", "letrehozva")
+    search_fields = ("felhasznalo__username", "etel__nev")
+    autocomplete_fields = ("felhasznalo", "etel")
+    ordering = ("-letrehozva",)

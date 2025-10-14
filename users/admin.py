@@ -3,15 +3,19 @@ from .models import Felhasznalo, Jog, FelhJog
 
 @admin.register(Felhasznalo)
 class FelhasznaloAdmin(admin.ModelAdmin):
-    list_display=("username","nev","email","kedvenc_etterem","is_active","is_staff")
-    search_fields=("username","nev","email")
+    list_display = ("username", "nev", "email", "kedvenc_etterem", "is_active", "is_staff")
+    list_filter = ("is_active", "is_staff", "is_superuser")
+    search_fields = ("username", "nev", "email")
+    autocomplete_fields = ("kedvenc_etterem",)  # ha FK az Etteremre
+    ordering = ("username",)
 
 @admin.register(Jog)
 class JogAdmin(admin.ModelAdmin):
-    list_display=("nev",)
-    search_fields=("nev",)
+    list_display = ("nev",)
+    search_fields = ("nev",)
 
 @admin.register(FelhJog)
 class FelhJogAdmin(admin.ModelAdmin):
-    list_display=("felhasznalo","jog")
-    search_fields=("felhasznalo__username","jog__nev")
+    list_display = ("felhasznalo", "jog")
+    autocomplete_fields = ("felhasznalo", "jog")
+    search_fields = ("felhasznalo__username", "jog__nev")
