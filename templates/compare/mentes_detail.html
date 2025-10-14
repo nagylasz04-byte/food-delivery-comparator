@@ -1,0 +1,12 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Mentés</h1>
+<p>Felhasználó: {{ object.felhasznalo.username }}</p>
+<p>Étel: {{ object.etel.nev }}</p>
+<p>Idő: {{ object.letrehozva }}</p>
+
+{% if user.is_authenticated and user.is_staff %}
+  <p><a href="{% url 'compare:mentes_update' object.pk %}">Szerkesztés</a> |
+     <a href="{% url 'compare:mentes_delete' object.pk %}">Törlés</a></p>
+{% endif %}
+{% endblock %}

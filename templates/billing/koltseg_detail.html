@@ -1,0 +1,12 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Költség</h1>
+<p><b>Étterem:</b> {{ object.etterem.nev }}</p>
+<p><b>Típus:</b> {{ object.get_koltseg_tipus_display }}</p>
+<p><b>Összeg:</b> {{ object.osszeg }} Ft</p>
+
+{% if user.is_authenticated and user.is_staff %}
+  <p><a href="{% url 'billing:koltseg_update' object.pk %}">Szerkesztés</a> |
+     <a href="{% url 'billing:koltseg_delete' object.pk %}">Törlés</a></p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <title>Food Compare – Wolt (fájlból/beágyazva)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#38bdf8; --chip:#1f2937; --good:#34d399; }
+    *{box-sizing:border-box}
+    body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+    h1{margin:0;font-size:22px}
+    .tabs{display:inline-flex;gap:8px}
+    .tab{padding:8px 12px;border-radius:999px;background:var(--chip);color:var(--muted);text-decoration:none;font-size:14px}
+    .tab.active{background:#0ea5e9;color:#fff}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media (min-width:900px){.grid{grid-template-columns:300px 1fr}}
+    .card{background:var(--card);border:1px solid #1f2937;border-radius:12px;padding:16px}
+    .card h2{margin:0 0 12px;font-size:16px;color:var(--accent)}
+    .muted{color:var(--muted);font-size:14px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .chip2{background:var(--chip);padding:6px 10px;border-radius:999px;font-size:12px;color:var(--muted)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #1f2937;text-align:left;vertical-align:top}
+    th{color:var(--muted);font-weight:600;font-size:13px}
+    td img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #1f2937}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .input,.select{background:#0b1220;border:1px solid #1f2937;color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px}
+    .total{font-weight:700}
+    .footer{margin-top:8px;font-size:12px;color:var(--muted)}
+    .warn{color:#fbbf24}
+    .err{color:#f87171}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Food Compare – <span style="color:#60a5fa">Wolt</span></h1>
+    <nav class="tabs">
+      <a class="tab" href="./foodora.html">Foodora</a>
+      <a class="tab active" href="./wolt.html">Wolt</a>
+    </nav>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Adatmodell lefedettség</h2>
+      <div class="row">
+        <span class="chip2">FELHASZNÁLÓ (olvasás)</span>
+        <span class="chip2">JOG (olvasás)</span>
+        <span class="chip2">FELHJOG (olvasás)</span>
+        <span class="chip2">ÉTTEREM (olvasás)</span>
+        <span class="chip2">ÉTTEREM_KÖLTSÉG (olvasás)</span>
+        <span class="chip2">ÉTEL (olvasás)</span>
+        <span class="chip2">MENTÉS (olvasás)</span>
+        <span class="chip2">ÉTTEREM_ÉTEL_INFO (olvasás)</span>
+      </div>
+      <p class="muted" id="modeInfo" style="margin-top:10px">Betöltés…</p>
+      <div class="toolbar">
+        <select id="restaurantFilter" class="select">
+          <option value="">Összes étterem</option>
+        </select>
+        <select id="categoryFilter" class="select">
+          <option value="">Összes kategória</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Ételek és ajánlatok (Wolt)</h2>
+      <div class="muted" style="margin-bottom:8px">
+        A végösszeg = <b>ÉTEL ÁR</b> + (szállítás + csomagolás + borravaló) – promóció.
+      </div>
+      <div style="overflow:auto">
+        <table id="offers">
+          <thead>
+            <tr>
+              <th>Étel</th>
+              <th>Leírás / Kategória</th>
+              <th>Étterem</th>
+              <th>Alapár</th>
+              <th>Rejtett költségek</th>
+              <th>Szállítási idő</th>
+              <th>Értékelés</th>
+              <th>Promóció</th>
+              <th class="total">Végösszeg</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="footer" id="countInfo"></div>
+    </section>
+  </div>
+
+  <!-- ❶ Beágyazott JS objektum – mindig elérhető fallback -->
+  <script>
+    const INLINE_WOLT_DATA = {
+      "restaurants": [
+        { "id": 1, "nev": "Pizza Bella",   "cim": "Budapest, VI. kerület",  "platform": "Wolt" },
+        { "id": 2, "nev": "Burger Mester", "cim": "Budapest, VII. kerület", "platform": "Wolt" },
+        { "id": 3, "nev": "Sushi Go",      "cim": "Budapest, XIII. kerület","platform": "Wolt" }
+      ],
+      "foods": [
+        { "id": 1, "nev": "Margherita pizza", "leiras": "Paradicsom, mozzarella, bazsalikom", "kategoria": "pizza",  "kep_url": "https://picsum.photos/seed/pizzaW/128" },
+        { "id": 2, "nev": "Dupla sajtburger", "leiras": "Marhahús, sajt, savanyú uborka",     "kategoria": "burger", "kep_url": "https://picsum.photos/seed/burgerW/128" },
+        { "id": 3, "nev": "Csirke ramen",     "leiras": "Csirke, tészta, tojás",              "kategoria": "leves",  "kep_url": "https://picsum.photos/seed/ramenW/128" },
+        { "id": 4, "nev": "Tonhal maki",      "leiras": "Tonhal, rizs, nori",                 "kategoria": "sushi",  "kep_url": "https://picsum.photos/seed/sushiW/128" },
+        { "id": 5, "nev": "Vega bowl",        "leiras": "Quinoa, zöldségek, tahini",          "kategoria": "vega",   "kep_url": "https://picsum.photos/seed/bowlW/128" }
+      ],
+      "costs": [
+        { "etterem_id": 1, "szallitas": 790, "csomagolas": 190, "borravalo": 0   },
+        { "etterem_id": 2, "szallitas": 990, "csomagolas": 0,   "borravalo": 300 },
+        { "etterem_id": 3, "szallitas": 590, "csomagolas": 190, "borravalo": 0   }
+      ],
+      "offers": [
+        { "id": "1-1", "etel_id": 1, "etterem_id": 1, "ar": 2890, "szallitas_ido": "25–35 perc", "ertekeles": 4.6, "promo": 0    },
+        { "id": "2-2", "etel_id": 2, "etterem_id": 2, "ar": 3190, "szallitas_ido": "30–45 perc", "ertekeles": 4.4, "promo": 300  },
+        { "id": "3-3", "etel_id": 3, "etterem_id": 3, "ar": 3490, "szallitas_ido": "30–45 perc", "ertekeles": 4.5, "promo": 0    },
+        { "id": "1-4", "etel_id": 4, "etterem_id": 1, "ar": 2590, "szallitas_ido": "25–35 perc", "ertekeles": 4.2, "promo": 0    },
+        { "id": "2-5", "etel_id": 5, "etterem_id": 2, "ar": 2990, "szallitas_ido": "40–55 perc", "ertekeles": 4.1, "promo": 500  }
+      ]
+    };
+  </script>
+
+  <!-- ❷ App logika -->
+  <script>
+    const $tbody = document.querySelector("#offers tbody");
+    const $restaurantFilter = document.getElementById("restaurantFilter");
+    const $categoryFilter = document.getElementById("categoryFilter");
+    const $countInfo = document.getElementById("countInfo");
+    const $modeInfo = document.getElementById("modeInfo");
+    let DATA = null;
+
+    const formatHuf = n => n.toLocaleString("hu-HU") + " Ft";
+    const buildIndex = (arr, key="id") => new Map(arr.map(it => [it[key], it]));
+
+    function renderFilters(){
+      $restaurantFilter.innerHTML = '<option value="">Összes étterem</option>' +
+        DATA.restaurants.map(r => `<option value="${r.id}">${r.nev}</option>`).join("");
+      const cats = Array.from(new Set(DATA.foods.map(f => f.kategoria)));
+      $categoryFilter.innerHTML = '<option value="">Összes kategória</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    function renderTable(){
+      const rid = $restaurantFilter.value;
+      const cat = $categoryFilter.value;
+      const foodById = buildIndex(DATA.foods, "id");
+      const costByRestaurant = new Map(DATA.costs.map(c => [c.etterem_id, c]));
+
+      const rows = DATA.offers.filter(o => {
+        const food = foodById.get(o.etel_id);
+        if (rid && String(o.etterem_id) !== rid) return false;
+        if (cat && food.kategoria !== cat) return false;
+        return true;
+      }).map(o => {
+        const food = foodById.get(o.etel_id);
+        const restaurant = DATA.restaurants.find(r => r.id === o.etterem_id);
+        const costs = costByRestaurant.get(o.etterem_id) || { szallitas:0, csomagolas:0, borravalo:0 };
+        const vegosszeg = o.ar + costs.szallitas + costs.csomagolas + costs.borravalo - (o.promo || 0);
+        return `
+          <tr>
+            <td><img src="${food.kep_url}" alt="${food.nev}"><div>${food.nev}</div></td>
+            <td><div class="muted">${food.leiras}</div><div class="chip2" style="display:inline-block;margin-top:6px">${food.kategoria}</div></td>
+            <td><b>${restaurant.nev}</b><div class="muted">${restaurant.cim}</div></td>
+            <td>${formatHuf(o.ar)}</td>
+            <td>
+              <div>Szállítás: <b>${formatHuf(costs.szallitas)}</b></div>
+              <div>Csomagolás: <b>${formatHuf(costs.csomagolas)}</b></div>
+              <div>Borravaló: <b>${formatHuf(costs.borravalo)}</b></div>
+            </td>
+            <td>${o.szallitas_ido}</td>
+            <td>${o.ertekeles} ⭐</td>
+            <td>${o.promo ? `<span class="good">−${formatHuf(o.promo)}</span>` : `<span class="muted">nincs</span>`}</td>
+            <td class="total">${formatHuf(vegosszeg)}</td>
+          </tr>`;
+      });
+
+      $tbody.innerHTML = rows.join("");
+      $countInfo.textContent = `${rows.length} ajánlat listázva (Wolt)`;
+    }
+
+    async function loadData() {
+      // HTTP/HTTPS esetén először próbálunk külső fájlt tölteni
+      if (location.protocol !== "file:") {
+        try {
+          const res = await fetch("./wolt_data.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const json = await res.json();
+          $modeInfo.innerHTML = 'Külső <code>wolt_data.json</code> fájlból töltve.';
+          return json;
+        } catch (e) {
+          console.warn("Fetch hiba, fallback az INLINE_WOLT_DATA-ra:", e);
+        }
+      } else {
+        console.warn("file:// mód – fetch gyakran tiltott, fallback az INLINE_WOLT_DATA-ra.");
+      }
+      // Fallback: beágyazott JS objektum (mindig van)
+      $modeInfo.innerHTML = '<span class="warn">Beágyazott adatokból töltve (file:// vagy fetch-hiba).</span>';
+      return INLINE_WOLT_DATA;
+    }
+
+    async function init(){
+      try {
+        DATA = await loadData();
+        renderFilters();
+        renderTable();
+      } catch (e) {
+        $modeInfo.innerHTML = '<span class="err">Hiba az adatok betöltésekor: ' + e.message + '</span>';
+        $tbody.innerHTML = `<tr><td colspan="9" class="err">Hiba: ${e.message}</td></tr>`;
+      }
+    }
+
+    $restaurantFilter.addEventListener("change", renderTable);
+    $categoryFilter.addEventListener("change", renderTable);
+    init();
+  </script>
+</body>
+</html>

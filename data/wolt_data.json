@@ -1,0 +1,26 @@
+{
+  "restaurants": [
+    { "id": 1, "nev": "Pizza Bella",   "cim": "Budapest, VI. kerület",  "platform": "Wolt" },
+    { "id": 2, "nev": "Burger Mester", "cim": "Budapest, VII. kerület", "platform": "Wolt" },
+    { "id": 3, "nev": "Sushi Go",      "cim": "Budapest, XIII. kerület","platform": "Wolt" }
+  ],
+  "foods": [
+    { "id": 1, "nev": "Margherita pizza", "leiras": "Paradicsom, mozzarella, bazsalikom", "kategoria": "pizza",  "kep_url": "https://picsum.photos/seed/pizzaW/128" },
+    { "id": 2, "nev": "Dupla sajtburger", "leiras": "Marhahús, sajt, savanyú uborka",     "kategoria": "burger", "kep_url": "https://picsum.photos/seed/burgerW/128" },
+    { "id": 3, "nev": "Csirke ramen",     "leiras": "Csirke, tészta, tojás",              "kategoria": "leves",  "kep_url": "https://picsum.photos/seed/ramenW/128" },
+    { "id": 4, "nev": "Tonhal maki",      "leiras": "Tonhal, rizs, nori",                 "kategoria": "sushi",  "kep_url": "https://picsum.photos/seed/sushiW/128" },
+    { "id": 5, "nev": "Vega bowl",        "leiras": "Quinoa, zöldségek, tahini",          "kategoria": "vega",   "kep_url": "https://picsum.photos/seed/bowlW/128" }
+  ],
+  "costs": [
+    { "etterem_id": 1, "szallitas": 790, "csomagolas": 190, "borravalo": 0   },
+    { "etterem_id": 2, "szallitas": 990, "csomagolas": 0,   "borravalo": 300 },
+    { "etterem_id": 3, "szallitas": 590, "csomagolas": 190, "borravalo": 0   }
+  ],
+  "offers": [
+    { "id": "1-1", "etel_id": 1, "etterem_id": 1, "ar": 2890, "szallitas_ido": "25–35 perc", "ertekeles": 4.6, "promo": 0    },
+    { "id": "2-2", "etel_id": 2, "etterem_id": 2, "ar": 3190, "szallitas_ido": "30–45 perc", "ertekeles": 4.4, "promo": 300  },
+    { "id": "3-3", "etel_id": 3, "etterem_id": 3, "ar": 3490, "szallitas_ido": "30–45 perc", "ertekeles": 4.5, "promo": 0    },
+    { "id": "1-4", "etel_id": 4, "etterem_id": 1, "ar": 2590, "szallitas_ido": "25–35 perc", "ertekeles": 4.2, "promo": 0    },
+    { "id": "2-5", "etel_id": 5, "etterem_id": 2, "ar": 2990, "szallitas_ido": "40–55 perc", "ertekeles": 4.1, "promo": 500  }
+  ]
+}

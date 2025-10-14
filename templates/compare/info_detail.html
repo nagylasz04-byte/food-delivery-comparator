@@ -1,0 +1,13 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>{{ object.etel.nev }} @ {{ object.etterem.nev }}</h1>
+<p>Ár: {{ object.ar }} Ft</p>
+<p>Szállítási idő: {{ object.szallitas_ido }}</p>
+<p>Értékelés: {{ object.felhaszn_ertekelesek }}</p>
+<p>Promóció: {{ object.promocio }}</p>
+
+{% if user.is_authenticated and user.is_staff %}
+  <p><a href="{% url 'compare:info_update' object.pk %}">Szerkesztés</a> |
+     <a href="{% url 'compare:info_delete' object.pk %}">Törlés</a></p>
+{% endif %}
+{% endblock %}

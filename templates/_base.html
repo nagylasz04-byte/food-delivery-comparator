@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <title>FoodCompare</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial;margin:24px}
+    nav a{margin-right:12px}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #ddd;padding:6px}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/etterem/">Éttermek</a>
+    <a href="/etel/">Ételek</a>
+    <a href="/koltseg/">Költségek</a>
+    <a href="/info/">Étel-info</a>
+    <a href="/mentes/">Mentések</a>
+  </nav>
+  <hr>
+  {% block content %}{% endblock %}
+</body>
+</html>

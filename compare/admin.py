@@ -1,0 +1,13 @@
+from django.contrib import admin
+from .models import EtteremEtelInfo, Mentes
+
+@admin.register(EtteremEtelInfo)
+class EtteremEtelInfoAdmin(admin.ModelAdmin):
+    list_display=("etel","etterem","ar","szallitas_ido","felhaszn_ertekelesek","promocio")
+    list_filter=("etterem__platform",)
+    search_fields=("etel__nev","etterem__nev")
+
+@admin.register(Mentes)
+class MentesAdmin(admin.ModelAdmin):
+    list_display=("felhasznalo","etel","letrehozva")
+    search_fields=("felhasznalo__username","etel__nev")

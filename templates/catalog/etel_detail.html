@@ -1,0 +1,7 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>{{ object.nev }}</h1>
+<p>Kategória: {{ object.kategoria }}</p>
+<p>{{ object.leiras }}</p>
+{% if object.kep_url %}<img src="{{ object.kep_url }}" width="300">{% endif %}
+{% endblock %}

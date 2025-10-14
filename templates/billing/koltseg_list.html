@@ -1,0 +1,28 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Rejtett költségek</h1>
+
+{% if user.is_authenticated and user.is_staff %}
+  <p><a href="{% url 'billing:koltseg_create' %}">+ Új költség</a></p>
+{% endif %}
+
+<table>
+  <tr><th>Étterem</th><th>Típus</th><th>Összeg</th><th>Műveletek</th></tr>
+  {% for o in object_list %}
+    <tr>
+      <td>{{ o.etterem.nev }}</td>
+      <td>{{ o.get_koltseg_tipus_display }}</td>
+      <td>{{ o.osszeg }} Ft</td>
+      <td>
+        <a href="{% url 'billing:koltseg_detail' o.pk %}">Megnyit</a>
+        {% if user.is_authenticated and user.is_staff %}
+          | <a href="{% url 'billing:koltseg_update' o.pk %}">Szerk.</a>
+          | <a href="{% url 'billing:koltseg_delete' o.pk %}">Törlés</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">Nincs adat.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
