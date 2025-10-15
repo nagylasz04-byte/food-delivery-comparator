@@ -1,6 +1,17 @@
 {% extends "_base.html" %}
 {% block content %}
 <h1>{{ object.etel.nev }} @ {{ object.etterem.nev }}</h1>
+
+<p><b>Platform:</b>
+  {% if object.etterem.get_platform_url %}
+    <a href="{{ object.etterem.get_platform_url }}" target="_blank" rel="noopener">
+      {{ object.etterem.get_platform_display }}
+    </a>
+  {% else %}
+    {{ object.etterem.get_platform_display }}
+  {% endif %}
+</p>
+
 <p><b>Ár:</b> {{ object.ar }} Ft</p>
 <p><b>Szállítási idő:</b> {{ object.szallitas_ido }}</p>
 <p><b>Felhasználói értékelések:</b> {{ object.felhaszn_ertekelesek|default:"–" }}</p>

@@ -1,74 +1,134 @@
-<!doctype html>
-<html lang="hu">
+<!doctype html> <!-- A dokumentum HTML5 szabványt használ -->
+<html lang="hu"> <!-- Dokumentum nyelve magyar -->
 <head>
-  <meta charset="utf-8" />
-  <title>Food Compare – Foodora (random adatok)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /> <!-- UTF-8 karakterkódolás -->
+  <title>Food Compare – Foodora (random adatok)</title> <!-- Böngésző fül címe -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- Reszponzív nézet mobilon -->
   <style>
+    /* =====================
+       Globális stílusok
+       ===================== */
     :root {
       --bg: #0f172a;        /* sötét háttér */
-      --card: #111827;      /* kártya */
-      --muted: #94a3b8;     /* szürkék */
-      --text: #e5e7eb;      /* fő szöveg */
-      --accent: #22d3ee;    /* kiemelés */
-      --good: #34d399;
-      --bad: #f87171;
-      --chip: #1f2937;
+      --card: #111827;      /* kártya háttérszín */
+      --muted: #94a3b8;     /* halvány szöveg/szín */
+      --text: #e5e7eb;      /* fő szövegszín */
+      --accent: #22d3ee;    /* kiemelő szín (címek) */
+      --good: #34d399;      /* pozitív (pl. promó) */
+      --bad: #f87171;       /* negatív (pl. drága) */
+      --chip: #1f2937;      /* chip háttérszín */
     }
-    * { box-sizing: border-box; }
+
+    * { box-sizing: border-box; } /* padding+border beleszámít a méretbe */
+
     body {
-      margin: 0; padding: 24px; background: var(--bg); color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      margin: 0; /* alap margó nullázása */
+      padding: 24px; /* külső térköz */
+      background: var(--bg); /* háttér a :root változóból */
+      color: var(--text); /* alapszöveg színe */
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; /* betűcsaládok */
     }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-    h1 { margin: 0; font-size: 22px; letter-spacing: .2px; }
-    .tabs { display: inline-flex; gap: 8px; }
-    .tab {
-      padding: 8px 12px; border-radius: 999px; background: var(--chip); color: var(--muted);
-      text-decoration: none; font-size: 14px;
+
+    header { /* felső fejléc sor */
+      display: flex; /* rugalmas elrendezés */
+      align-items: center; /* függőleges középre igazítás */
+      justify-content: space-between; /* két végpont közé húzás */
+      gap: 16px; /* elemek közti rés */
+      margin-bottom: 24px; /* távolság az alatt lévő tartalomtól */
     }
-    .tab.active { background: #0ea5e9; color: #fff; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    @media (min-width: 900px) { .grid { grid-template-columns: 300px 1fr; } }
-    .card {
-      background: var(--card); border: 1px solid #1f2937; border-radius: 12px; padding: 16px;
+
+    h1 { margin: 0; font-size: 22px; letter-spacing: .2px; } /* főcím stílus */
+
+    .tabs { display: inline-flex; gap: 8px; } /* lapfülek konténere */
+
+    .tab { /* egy lapfül */
+      padding: 8px 12px;
+      border-radius: 999px; /* teljesen kerek gombformátum */
+      background: var(--chip);
+      color: var(--muted);
+      text-decoration: none; /* link aláhúzás nélkül */
+      font-size: 14px;
     }
-    .card h2 { margin: 0 0 12px; font-size: 16px; color: var(--accent); }
-    .muted { color: var(--muted); font-size: 14px; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .chip2 { background: var(--chip); padding: 6px 10px; border-radius: 999px; font-size: 12px; color: var(--muted); }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; border-bottom: 1px solid #1f2937; text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; font-size: 13px; }
-    td img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #1f2937; }
-    .ok { color: var(--good); }
-    .bad { color: var(--bad); }
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-    .input, .select {
+
+    .tab.active { background: #0ea5e9; color: #fff; } /* aktív fül kiemelése */
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; } /* egyoszlopos rács alapból */
+
+    @media (min-width: 900px) { .grid { grid-template-columns: 300px 1fr; } } /* széles képernyőn 2 oszlop */
+
+    .card { /* kártya dobozok */
+      background: var(--card);
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .card h2 { margin: 0 0 12px; font-size: 16px; color: var(--accent); } /* kártya cím */
+
+    .muted { color: var(--muted); font-size: 14px; } /* halvány szöveg */
+
+    .row { display: flex; gap: 8px; flex-wrap: wrap; } /* sor, tördelhető badge-ekhez */
+
+    .chip2 { /* kerek címke */
+      background: var(--chip);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    table { width: 100%; border-collapse: collapse; } /* teljes szélességű táblázat */
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1f2937; /* sorhatár */
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { color: var(--muted); font-weight: 600; font-size: 13px; } /* fejlécek */
+
+    td img {
+      width: 64px; height: 64px; /* egységes méret */
+      object-fit: cover; /* arányos kitöltés */
+      border-radius: 8px; border: 1px solid #1f2937; /* kártyás keret */
+    }
+
+    .ok { color: var(--good); } /* pozitív zöld */
+    .bad { color: var(--bad); } /* negatív piros */
+
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; } /* szűrősor */
+
+    .input, .select { /* űrlapelemek alapstílus */
       background: #0b1220; border: 1px solid #1f2937; color: var(--text);
       padding: 8px 10px; border-radius: 8px; font-size: 14px;
     }
-    .btn {
-      background: #0ea5e9; border: 1px solid #0284c7; color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+
+    .btn { /* gomb stílus */
+      background: #0ea5e9; border: 1px solid #0284c7; color: #fff;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
     }
-    .total { font-weight: 700; }
-    .footer { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+    .total { font-weight: 700; } /* kiemelt végösszeg oszlop */
+
+    .footer { margin-top: 8px; font-size: 12px; color: var(--muted); } /* táblázat alatti infó */
   </style>
 </head>
 <body>
+  <!-- Fejléc: cím és lapfülek -->
   <header>
-    <h1>Food Compare – <span style="color:#60a5fa">Foodora</span></h1>
-    <nav class="tabs">
-      <a class="tab active" href="./foodora.html">Foodora</a>
-      <a class="tab" href="./wolt.html">Wolt</a>
+    <h1>Food Compare – <span style="color:#60a5fa">Foodora</span></h1> <!-- Oldalcím, Foodora kékkel -->
+    <nav class="tabs"> <!-- Navigációs lapfülek -->
+      <a class="tab active" href="./foodora.html">Foodora</a> <!-- Aktív lap -->
+      <a class="tab" href="./wolt.html">Wolt</a> <!-- Másik oldal linkje -->
     </nav>
   </header>
 
-  <div class="grid">
-    <!-- SZŰRŐK / INFO -->
+  <div class="grid"> <!-- Kétoszlopos (desktop) / egyoszlopos (mobil) elrendezés -->
+    <!-- Bal oldali kártya: szűrők és státusz -->
     <section class="card">
-      <h2>Adatmodell lefedettség</h2>
-      <div class="row">
+      <h2>Adatmodell lefedettség</h2> <!-- Kártya címe -->
+      <div class="row"> <!-- Badge-ek sora -->
         <span class="chip2">FELHASZNÁLÓ (olvasás)</span>
         <span class="chip2">JOG (olvasás)</span>
         <span class="chip2">FELHJOG (olvasás)</span>
@@ -81,25 +141,25 @@
       <p class="muted" style="margin-top:10px">
         Ez a demó random adatokat generál a Foodora platformra, de szerkezetében pontosan megfelel az adatbázisodnak.
       </p>
-      <div class="toolbar">
-        <select id="restaurantFilter" class="select">
+      <div class="toolbar"> <!-- Szűrő UI -->
+        <select id="restaurantFilter" class="select"> <!-- Étterem szűrő -->
           <option value="">Összes étterem</option>
         </select>
-        <select id="categoryFilter" class="select">
+        <select id="categoryFilter" class="select"> <!-- Kategória szűrő -->
           <option value="">Összes kategória</option>
         </select>
-        <button class="btn" id="regen">Új random adatok</button>
+        <button class="btn" id="regen">Új random adatok</button> <!-- Újragenerálás -->
       </div>
     </section>
 
-    <!-- EREDMÉNY TÁBLA -->
+    <!-- Jobb oldali kártya: eredmény táblázat -->
     <section class="card">
-      <h2>Ételek és ajánlatok (Foodora)</h2>
+      <h2>Ételek és ajánlatok (Foodora)</h2> <!-- Táblázat címe -->
       <div class="muted" style="margin-bottom:8px">
         A végösszeg = <b>ÉTEL ÁR</b> + (szállítás + csomagolás + borravaló) – promóció.
       </div>
-      <div style="overflow:auto">
-        <table id="offers">
+      <div style="overflow:auto"> <!-- görgethető táblázat konténer -->
+        <table id="offers"> <!-- Eredmények táblázata -->
           <thead>
             <tr>
               <th>Étel</th>
@@ -113,23 +173,26 @@
               <th class="total">Végösszeg</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody></tbody> <!-- Dinamikusan kitöltve JS-ből -->
         </table>
       </div>
-      <div class="footer" id="countInfo"></div>
+      <div class="footer" id="countInfo"></div> <!-- Sorok száma / státusz -->
     </section>
   </div>
 
   <script>
-    // ===========
+    // =============================
     // Mock adatgenerátor (Foodora)
-    // ===========
+    // =============================
+
+    // 1) Alap entitások: éttermek
     const RESTAURANTS = [
       { id: 1, nev: "Pizza Bella", cim: "Budapest, VI. kerület", platform: "Foodora" },
       { id: 2, nev: "Burger Mester", cim: "Budapest, VII. kerület", platform: "Foodora" },
       { id: 3, nev: "Sushi Go", cim: "Budapest, XIII. kerület", platform: "Foodora" }
     ];
 
+    // 2) Alap entitások: ételek
     const FOODS = [
       { id: 1, nev: "Margherita pizza", leiras: "Paradicsom, mozzarella, bazsalikom", kategoria: "pizza", kep_url: "https://picsum.photos/seed/pizza/128" },
       { id: 2, nev: "Dupla sajtburger", leiras: "Marhahús, sajt, savanyú uborka", kategoria: "burger", kep_url: "https://picsum.photos/seed/burger/128" },
@@ -138,30 +201,30 @@
       { id: 5, nev: "Vega bowl", leiras: "Quinoa, zöldségek, tahini", kategoria: "vega", kep_url: "https://picsum.photos/seed/bowl/128" }
     ];
 
-    // Segédfüggvények
-    const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-    const rndFloat = (min, max, d = 1) => Number((Math.random() * (max - min) + min).toFixed(d));
+    // 3) Segédfüggvények a random számokhoz
+    const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min; // egész
+    const rndFloat = (min, max, d = 1) => Number((Math.random() * (max - min) + min).toFixed(d)); // lebegőpontos
 
-    // Rejtett költségek (ÉTTEREM_KÖLTSÉG) generálása étteremhez
+    // 4) ÉTTEREM_KÖLTSÉG: rejtett költségek generálása adott étteremhez
     function genCostsForRestaurant(etteremId) {
       return {
-        etterem_id: etteremId,
-        szallitas: rnd(490, 1490),
-        csomagolas: rnd(0, 390),
-        borravalo: rnd(0, 590)
+        etterem_id: etteremId, // hivatkozás az étteremre
+        szallitas: rnd(490, 1490), // szállítási díj (Ft)
+        csomagolas: rnd(0, 390),   // csomagolási díj (Ft)
+        borravalo: rnd(0, 590)     // borravaló (Ft)
       };
     }
 
-    // Kapcsolótábla: ÉTTEREM_ÉTEL_INFO
+    // 5) ÉTTEREM_ÉTEL_INFO: ajánlat létrehozása egy étel + étterem + költségek alapján
     function genOfferFor(food, restaurant, costs) {
-      const ar = rnd(1490, 5890);
-      const szallIdo = [ "25–35 perc", "30–45 perc", "40–55 perc" ][rnd(0,2)];
-      const ertekeles = rndFloat(3.8, 4.9, 1);
-      const promo = [0, 0, 0, 300, 500][rnd(0,4)]; // néha van promó
-      const vegosszeg = ar + costs.szallitas + costs.csomagolas + costs.borravalo - promo;
+      const ar = rnd(1490, 5890); // étel alapára
+      const szallIdo = [ "25–35 perc", "30–45 perc", "40–55 perc" ][rnd(0,2)]; // szállítási idő
+      const ertekeles = rndFloat(3.8, 4.9, 1); // 3.8–4.9 közötti átlag
+      const promo = [0, 0, 0, 300, 500][rnd(0,4)]; // ritkán van kedvezmény
+      const vegosszeg = ar + costs.szallitas + costs.csomagolas + costs.borravalo - promo; // végösszeg képlete
 
       return {
-        id: `${restaurant.id}-${food.id}`,
+        id: `${restaurant.id}-${food.id}`, // egyedi ajánlat azonosító
         etel_id: food.id,
         etterem_id: restaurant.id,
         ar,
@@ -169,20 +232,23 @@
         ertekeles,
         promo,
         vegosszeg,
-        _food: food,
+        _food: food,           // beágyazott referencia gyors megjelenítéshez
         _restaurant: restaurant,
         _costs: costs
       };
     }
 
-    // TELJES DATA SET (azonos elemszám, mint a Wolt oldalon lesz)
+    // 6) Teljes adatkészlet összeállítása (konzisztens elemszám a Wolt oldalhoz hasonlóan)
     function buildDataset() {
-      // 3 étterem, 5 étel – összesen 5 ajánlat (egy étteremhez/ételhez párosítva)
+      // Költség táblázat létrehozása minden étteremhez (id→költség)
       const costsMap = Object.fromEntries(RESTAURANTS.map(r => [r.id, genCostsForRestaurant(r.id)]));
+
+      // Fix párosítások: (étterem_id, étel_id)
       const chosenPairs = [
-        [1,1], [2,2], [3,3], [1,4], [2,5] // (etterem_id, etel_id)
+        [1,1], [2,2], [3,3], [1,4], [2,5]
       ];
 
+      // Ajánlatok generálása
       const offers = chosenPairs.map(([rid, fid]) => {
         const restaurant = RESTAURANTS.find(r => r.id === rid);
         const food = FOODS.find(f => f.id === fid);
@@ -190,47 +256,55 @@
         return genOfferFor(food, restaurant, costs);
       });
 
-      return { restaurants: RESTAURANTS, foods: FOODS, offers };
+      return { restaurants: RESTAURANTS, foods: FOODS, offers }; // egységes struktúra
     }
 
-    // UI render
-    const $tbody = document.querySelector("#offers tbody");
-    const $restaurantFilter = document.getElementById("restaurantFilter");
-    const $categoryFilter = document.getElementById("categoryFilter");
-    const $countInfo = document.getElementById("countInfo");
-    const $regen = document.getElementById("regen");
+    // 7) DOM elemek bekötése
+    const $tbody = document.querySelector("#offers tbody"); // táblázat törzs
+    const $restaurantFilter = document.getElementById("restaurantFilter"); // étterem szűrő
+    const $categoryFilter = document.getElementById("categoryFilter"); // kategória szűrő
+    const $countInfo = document.getElementById("countInfo"); // lábléc infó
+    const $regen = document.getElementById("regen"); // újrageneráló gomb
 
+    // 8) Kezdő adatállapot
     let DATA = buildDataset();
 
+    // 9) Formázó segédfüggvény: forint
     function formatHuf(n) {
-      return n.toLocaleString("hu-HU") + " Ft";
+      return n.toLocaleString("hu-HU") + " Ft"; // magyar formátum + Ft
     }
 
+    // 10) Szűrők feltöltése aktuális adatokból
     function renderFilters() {
-      // Éttermek
+      // Éttermek listája
       $restaurantFilter.innerHTML = '<option value="">Összes étterem</option>' +
         DATA.restaurants.map(r => `<option value="${r.id}">${r.nev}</option>`).join("");
 
-      // Kategóriák
+      // Kategóriák (egyedi halmazból)
       const cats = Array.from(new Set(DATA.foods.map(f => f.kategoria)));
       $categoryFilter.innerHTML = '<option value="">Összes kategória</option>' +
         cats.map(c => `<option value="${c}">${c}</option>`).join("");
     }
 
+    // 11) Táblázat kirajzolása a szűrők alapján
     function renderTable() {
-      const rid = $restaurantFilter.value;
-      const cat = $categoryFilter.value;
+      const rid = $restaurantFilter.value; // kiválasztott étterem id (vagy üres)
+      const cat = $categoryFilter.value;   // kiválasztott kategória (vagy üres)
 
+      // Szűrés
       const rows = DATA.offers.filter(o => {
-        if (rid && String(o._restaurant.id) !== rid) return false;
-        if (cat && o._food.kategoria !== cat) return false;
-        return true;
+        if (rid && String(o._restaurant.id) !== rid) return false; // étterem szűrés
+        if (cat && o._food.kategoria !== cat) return false;        // kategória szűrés
+        return true; // maradhat
       }).map(o => {
+        // Rejtett költségek HTML darabja
         const costHtml = `
           <div>Szállítás: <b>${formatHuf(o._costs.szallitas)}</b></div>
           <div>Csomagolás: <b>${formatHuf(o._costs.csomagolas)}</b></div>
           <div>Borravaló: <b>${formatHuf(o._costs.borravalo)}</b></div>
         `;
+
+        // Egy táblázatsor HTML-je
         return `
           <tr>
             <td><img src="${o._food.kep_url}" alt="${o._food.nev}" /><div>${o._food.nev}</div></td>
@@ -246,19 +320,26 @@
         `;
       });
 
+      // Táblázat feltöltése
       $tbody.innerHTML = rows.join("");
+
+      // Sorok számának kiírása
       $countInfo.textContent = `${rows.length} ajánlat listázva (Foodora / random)`;
     }
 
-    $restaurantFilter.addEventListener("change", renderTable);
-    $categoryFilter.addEventListener("change", renderTable);
-    $regen.addEventListener("click", () => {
-      DATA = buildDataset(); renderFilters(); renderTable();
+    // 12) Eseménykezelők: szűrők és újragenerálás
+    $restaurantFilter.addEventListener("change", renderTable); // étterem szűrő változott
+    $categoryFilter.addEventListener("change", renderTable);   // kategória szűrő változott
+    $regen.addEventListener("click", () => {                   // új adatok kérése
+      DATA = buildDataset(); // új random csomag
+      renderFilters();       // szűrők frissítése
+      renderTable();         // táblázat újrarajzolása
     });
 
-    // Init
-    renderFilters();
-    renderTable();
+    // 13) Kezdeti kirajzolás
+    renderFilters(); // tölti a selecteket
+    renderTable();   // kirajzolja a táblázatot
   </script>
 </body>
 </html>
+

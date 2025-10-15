@@ -10,6 +10,7 @@
   <tr>
     <th>Étel</th>
     <th>Étterem</th>
+    <th>Platform</th>
     <th>Ár</th>
     <th>Száll. idő</th>
     <th>Felhasználói értékelések</th>
@@ -20,6 +21,15 @@
     <tr>
       <td><a href="{% url 'compare:info_detail' o.pk %}">{{ o.etel.nev }}</a></td>
       <td>{{ o.etterem.nev }}</td>
+      <td>
+        {% if o.etterem.get_platform_url %}
+          <a href="{{ o.etterem.get_platform_url }}" target="_blank" rel="noopener">
+            {{ o.etterem.get_platform_display }}
+          </a>
+        {% else %}
+          {{ o.etterem.get_platform_display }}
+        {% endif %}
+      </td>
       <td>{{ o.ar }} Ft</td>
       <td>{{ o.szallitas_ido }}</td>
       <td>{{ o.felhaszn_ertekelesek|default:"–" }}</td>
@@ -33,7 +43,9 @@
     </tr>
   {% empty %}
     <tr>
-      <td colspan="{% if user.is_authenticated and user.is_staff %}7{% else %}6{% endif %}">Nincs adat.</td>
+      <td colspan="{% if user.is_authenticated and user.is_staff %}8{% else %}7{% endif %}">
+        Nincs adat.
+      </td>
     </tr>
   {% endfor %}
 </table>
