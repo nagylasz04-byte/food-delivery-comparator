@@ -64,6 +64,19 @@
            árak összevetése
         </a>
 
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'compare:toggle_save' etel.id %}" style="display:inline-block; margin-left:.5rem;">
+            {% csrf_token %}
+            {% if etel.pk in saved_etel_ids %}
+              <button class="btn" style="background:#ccc;">Eltávolít</button>
+            {% else %}
+              <button class="btn" style="background:#2b9a2b;color:#fff;">Mentés</button>
+            {% endif %}
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}?next={% url 'catalog:etel_detail' etel.pk %}" class="btn" style="margin-left:.5rem;">Bejelentkezés a mentéshez</a>
+        {% endif %}
+
         <div style="color:#666; font-size:12px; margin-top:.35rem;">
           {% if etel.offer_count %}{{ etel.offer_count }} ajánlat{% else %}nincs ajánlat{% endif %}
         </div>

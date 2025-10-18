@@ -6,6 +6,7 @@ from django.db.models import Q, Min, Count, Avg
 
 from foodcompare.mixins import LoginRequired, WritePermissionRequired
 from .models import Etterem, Etel
+from compare.models import Mentes
 
 
 # ---------- ÉTTEREM: teljes CRUD ----------
@@ -121,4 +122,9 @@ class EtelSearchView(ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
         ctx["sort"] = self.request.GET.get("sort", "alap")
+        # saved etel ids for the current user (to render save/unsave buttons)
+        if self.request.user.is_authenticated:
+            ctx["saved_etel_ids"] = set(Mentes.objects.filter(felhasznalo=self.request.user).values_list("etel_id", flat=True))
+        else:
+            ctx["saved_etel_ids"] = set()
         return ctx

@@ -94,12 +94,10 @@ class SavedFoodsView(ListView):
     context_object_name = "saved"
 
     def get_queryset(self):
-        return (
-            Mentes.objects
-            .filter(felhasznalo=self.request.user)
-            .select_related("etel")
-            .order_by("-letrehozva")
-        )
+        qs = Mentes.objects.select_related("etel")
+        if self.request.user.is_staff:
+            return qs.order_by("-letrehozva")
+        return qs.filter(felhasznalo=self.request.user).order_by("-letrehozva")
 
 
 # ---- (a korábbi CRUD/Lista nézeteid maradhatnak változatlanul) ----
