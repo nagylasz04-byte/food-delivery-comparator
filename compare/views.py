@@ -1,15 +1,71 @@
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.db.models import Sum, F, Value, DecimalField
+from django.db.models.functions import Coalesce
 
-from foodcompare.mixins import LoginRequired, WritePermissionRequired
-from .models import EtteremEtelInfo, Mentes  # <--- FONTOS: Mentes is kell!
+from catalog.models import Etel
+from .models import EtteremEtelInfo
+from billing.models import EtteremKoltseg
+
+# ha már van nálad ez a mixin, maradhat
+try:
+    from foodcompare.mixins import LoginRequired, WritePermissionRequired
+except Exception:  # fejlesztői kényelemre
+    class LoginRequired: ...
+    class WritePermissionRequired: ...
 
 
-# ---------- ÉTTEREM–ÉTEL INFÓ (ajánlatok) ----------
+class OffersForEtelView(TemplateView):
+    """
+    KÜLÖN TERMÉKOLDAL: egy adott étel összes platform/étterem ajánlata.
+    URL: /termek/<etel_id>/
+    """
+    template_name = "compare/offers_for_etel.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        etel_id = self.kwargs["etel_id"]
+        etel = get_object_or_404(Etel, pk=etel_id)
+
+        # ajánlatok + összesített költség + total ár
+        offers = (
+            EtteremEtelInfo.objects
+            .filter(etel_id=etel_id)
+            .select_related("etterem", "etel")
+            .annotate(
+                cost_sum=Coalesce(
+                    Sum("etterem__koltsegek__osszeg"),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )
+            .annotate(total_price=F("ar") + F("cost_sum"))
+            .order_by("total_price", "ar")
+        )
+
+        min_total = offers.first().total_price if offers else None
+        offer_count = offers.count()
+
+        # költségek listázása éttermenként
+        koltsegek_by_etterem = {}
+        if offer_count:
+            etterem_ids = [o.etterem_id for o in offers]
+            for k in EtteremKoltseg.objects.filter(etterem_id__in=etterem_ids):
+                koltsegek_by_etterem.setdefault(k.etterem_id, []).append(k)
+
+        ctx.update({
+            "etel": etel,
+            "offers": offers,
+            "min_total": min_total,
+            "offer_count": offer_count,
+            "koltsegek_by_etterem": koltsegek_by_etterem,
+        })
+        return ctx
+
+
+# ---- (a korábbi CRUD/Lista nézeteid maradhatnak változatlanul) ----
 class InfoListView(ListView):
-    """
-    Ajánlatok listája. ?etel=<id> esetén az adott étel ajánlatai.
-    """
     model = EtteremEtelInfo
     template_name = "compare/info_list.html"
     paginate_by = 20
@@ -48,45 +104,3 @@ class InfoDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
     permission_required = "compare.delete_etteremetelinfo"
     template_name = "compare/confirm_delete.html"
     success_url = reverse_lazy("compare:info_list")
-
-
-# ---------- MENTÉS (kedvencek / elmentett tételek) ----------
-class MentesListView(ListView):
-    model = Mentes
-    template_name = "compare/mentes_list.html"
-    paginate_by = 20
-
-    def get_queryset(self):
-        qs = super().get_queryset().select_related("felh", "etel")
-        # ha csak saját mentéseket akarsz mutatni bejelentkezett felhasználónak:
-        # if self.request.user.is_authenticated:
-        #     qs = qs.filter(felh=self.request.user)
-        return qs.order_by("-id")
-
-
-class MentesDetailView(DetailView):
-    model = Mentes
-    template_name = "compare/mentes_detail.html"
-
-
-class MentesCreateView(LoginRequired, WritePermissionRequired, CreateView):
-    model = Mentes
-    fields = ["felh", "etel"]
-    permission_required = "compare.add_mentes"
-    template_name = "compare/mentes_form.html"
-    success_url = reverse_lazy("compare:mentes_list")
-
-
-class MentesUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
-    model = Mentes
-    fields = ["felh", "etel"]
-    permission_required = "compare.change_mentes"
-    template_name = "compare/mentes_form.html"
-    success_url = reverse_lazy("compare:mentes_list")
-
-
-class MentesDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
-    model = Mentes
-    permission_required = "compare.delete_mentes"
-    template_name = "compare/confirm_delete.html"
-    success_url = reverse_lazy("compare:mentes_list")

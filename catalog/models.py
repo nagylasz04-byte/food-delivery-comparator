@@ -1,61 +1,56 @@
-# catalog/models.py
 from django.db import models
 
 
-# --- Platform választék (choices) ---
-PLATFORM_WOLT = "wolt"
-PLATFORM_FOODORA = "foodora"
-PLATFORM_BOLT = "bolt"
+class Etel(models.Model):
+    nev = models.CharField(max_length=150)
+    leiras = models.TextField(blank=True)
+    kategoria = models.CharField(max_length=50, blank=True)
+    kep_url = models.URLField(blank=True)
 
-PLATFORM_CHOICES = (
-    (PLATFORM_WOLT, "Wolt"),
-    (PLATFORM_FOODORA, "Foodora"),
-    (PLATFORM_BOLT, "Bolt Food"),
+    def __str__(self):
+        return self.nev
+
+
+PLATFORMOK = (
+    ("wolt", "Wolt"),
+    ("foodora", "Foodora"),
+    ("bolt", "Bolt Food"),
+    ("egyeb", "Egyéb"),
 )
 
 
 class Etterem(models.Model):
-    nev = models.CharField(max_length=150, verbose_name="Név")
-    cim = models.CharField(max_length=255, verbose_name="Cím")
-    platform = models.CharField(
-        max_length=20,
-        choices=PLATFORM_CHOICES,
-        verbose_name="Platform",
-        help_text="Pl.: Wolt / Foodora / Bolt Food",
-    )
+    nev = models.CharField(max_length=150)
+    cim = models.CharField(max_length=250, blank=True)
+    platform = models.CharField(max_length=20, choices=PLATFORMOK, default="egyeb")
 
-    class Meta:
-        verbose_name = "Étterem"
-        verbose_name_plural = "Éttermek"
-        ordering = ("nev",)
+    # ÚJ mezők a termékoldalhoz
+    platform_logo_url = models.URLField(blank=True)
+    platform_url = models.URLField(blank=True)
 
-    def __str__(self) -> str:
-        return f"{self.nev} ({self.get_platform_display()})"
-
-    def get_platform_url(self) -> str:
-        """
-        Visszaadja a platform nyitóoldalát a platform kód alapján.
-        Ha nincs ismert platform, akkor '#'-t ad vissza.
-        (Ez nem igényel migrációt, csak sablonból hívjuk.)
-        """
-        mapping = {
-            PLATFORM_WOLT: "https://wolt.com/hu",
-            PLATFORM_FOODORA: "https://www.foodora.hu",
-            PLATFORM_BOLT: "https://bolt.eu/hu/food",
-        }
-        return mapping.get(self.platform, "#")
-
-
-class Etel(models.Model):
-    nev = models.CharField(max_length=150, verbose_name="Név")
-    leiras = models.TextField(blank=True, verbose_name="Leírás")
-    kategoria = models.CharField(max_length=50, blank=True, verbose_name="Kategória")
-    kep_url = models.URLField(blank=True, verbose_name="Kép URL")
-
-    class Meta:
-        verbose_name = "Étel"
-        verbose_name_plural = "Ételek"
-        ordering = ("nev",)
-
-    def __str__(self) -> str:
+    def __str__(self):
         return self.nev
+
+    # Alap logó, ha nincs kitöltve
+    def get_platform_logo_url(self) -> str:
+        if self.platform_logo_url:
+            return self.platform_logo_url
+        defaults = {
+            "wolt": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Wolt_logo.png",
+            "foodora": "https://upload.wikimedia.org/wikipedia/commons/2/26/Foodora_logo.png",
+            "bolt": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Bolt_logo.png",
+            "egyeb": "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg",
+        }
+        return defaults.get(self.platform, defaults["egyeb"])
+
+    # Alap platform URL, ha nincs kitöltve
+    def get_platform_url(self) -> str:
+        if self.platform_url:
+            return self.platform_url
+        defaults = {
+            "wolt": "https://wolt.com",
+            "foodora": "https://www.foodora.hu",
+            "bolt": "https://bolt.eu/hu",
+            "egyeb": "#",
+        }
+        return defaults.get(self.platform, "#")

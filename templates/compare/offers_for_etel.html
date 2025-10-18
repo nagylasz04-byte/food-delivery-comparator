@@ -1,0 +1,95 @@
+{% extends "_base.html" %}
+{% load dict_extras %}
+
+{% block content %}
+
+<!-- Felső kereső a meglevő listanézetedre mutat -->
+<form method="get" action="{% url 'catalog:kereses' %}" style="display:flex; gap:.6rem; margin-bottom:1rem;">
+  <input name="q" placeholder="Mit keres?" style="flex:1; padding:.7rem .9rem; border:1px solid #ddd; border-radius:10px;">
+  <button class="btn" style="padding:.7rem 1rem;">Keresés</button>
+</form>
+
+<!-- Fejléc – termék kártya -->
+<div style="display:grid; grid-template-columns:180px 1fr; gap:1rem; align-items:center; padding:1rem; border:1px solid #eee; border-radius:12px; margin-bottom:1rem;">
+  <div style="width:180px; height:180px; display:flex; align-items:center; justify-content:center; background:#fafafa; border-radius:10px; overflow:hidden;">
+    {% if etel.kep_url %}
+      <img src="{{ etel.kep_url }}" alt="{{ etel.nev }}" style="max-width:180px; max-height:180px; object-fit:contain;">
+    {% else %}
+      <span style="color:#aaa; font-size:12px;">nincs kép</span>
+    {% endif %}
+  </div>
+  <div>
+    <h1 style="margin:.2rem 0 .6rem 0;">{{ etel.nev }}</h1>
+    <div style="margin:.4rem 0; font-size:20px; font-weight:700;">
+      {% if min_total %}{{ min_total|floatformat:0 }} Ft-tól{% else %}—{% endif %}
+      <span style="color:#666; font-size:14px; margin-left:.5rem;">
+        {% if offer_count %}{{ offer_count }} ajánlat{% else %}Nincs ajánlat{% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Fülek fejléc (jelenleg csak az első aktív) -->
+<div style="display:flex; gap:.5rem; margin-bottom:.7rem;">
+  <a href="#" class="btn" style="background:#2b61d1; color:#fff;">Platformok és árak</a>
+  <a href="#" class="btn" style="opacity:.5; pointer-events:none;">Termékleírás</a>
+  <a href="#" class="btn" style="opacity:.5; pointer-events:none;">Vélemények</a>
+  <a href="#" class="btn" style="opacity:.5; pointer-events:none;">Kérdezz</a>
+</div>
+
+<!-- Platformok és árak tábla -->
+<div style="border:1px solid #eee; border-radius:12px; overflow:hidden;">
+  <table style="width:100%; border-collapse:collapse;">
+    <thead style="background:#fafafa;">
+      <tr>
+        <th style="text-align:left; padding:.8rem; border-bottom:1px solid #eee;">Platform</th>
+        <th style="text-align:left; padding:.8rem; border-bottom:1px solid #eee;">Termék</th>
+        <th style="text-align:right; padding:.8rem; border-bottom:1px solid #eee; white-space:nowrap;">Összesített ár</th>
+        <th style="text-align:left; padding:.8rem; border-bottom:1px solid #eee;">Rejtett költségek</th>
+        <th style="text-align:right; padding:.8rem; border-bottom:1px solid #eee;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in offers %}
+        {% with koltsegek=koltsegek_by_etterem|dict_get:o.etterem_id %}
+        <tr style="border-bottom:1px solid #f2f2f2;">
+          <td style="padding:.8rem;">
+            <div style="display:flex; align-items:center; gap:.6rem;">
+              <img src="{{ o.etterem.get_platform_logo_url }}" alt="{{ o.etterem.get_platform_display }}" style="height:26px;">
+              <div>
+                <div style="font-weight:600;">{{ o.etterem.get_platform_display }}</div>
+                <div style="font-size:12px; color:#666;">{{ o.etterem.nev }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding:.8rem;">{{ etel.nev }}</td>
+          <td style="padding:.8rem; text-align:right; font-weight:700; white-space:nowrap;">
+            {{ o.total_price|floatformat:0 }} Ft
+          </td>
+          <td style="padding:.8rem;">
+            {% if koltsegek %}
+              <ul style="margin:0; padding-left:1rem; color:#444;">
+                {% for k in koltsegek %}
+                  <li>{{ k.get_koltseg_tipus_display }}: {{ k.osszeg|floatformat:0 }} Ft</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <span style="color:#888;">Nincs extra költség</span>
+            {% endif %}
+          </td>
+          <td style="padding:.8rem; text-align:right;">
+            <a href="{{ o.etterem.get_platform_url }}" target="_blank" rel="noopener"
+               class="btn" style="background:#12a54d; color:#fff;">Irány a bolt »</a>
+          </td>
+        </tr>
+        {% endwith %}
+      {% empty %}
+        <tr>
+          <td colspan="5" style="padding:1rem; color:#666;">Ehhez az ételhez még nincs ajánlat.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
