@@ -11,15 +11,16 @@
 
     <div class="nav">
       <a href="{% url 'home' %}">Kezdőlap</a>
-      <a href="/etterem/">Éttermek</a>
-      <a href="/etel/">Ételek</a>
-      <a href="/koltseg/">Költségek</a>
-      <a href="/info/">Étel-infó</a>
-      <a href="/mentes/">Mentések</a>
+      <a href="{% url 'catalog:etterem_list' %}">Éttermek</a>
+      <a href="{% url 'catalog:etel_list' %}">Ételek</a>
+      <a href="{% url 'billing:koltseg_list' %}">Költségek</a>
+      <a href="{% url 'compare:info_list' %}">Étel-infó</a>
+      <a href="{% url 'catalog:kereses' %}">Keresés</a>
+      <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
       {% if user.is_authenticated %}
-        <a href="/admin/">Admin</a>
+        <a href="{% url 'admin:index' %}">Admin</a>
       {% else %}
-        <a href="/admin/login/">Bejelentkezés</a>
+        <a href="{% url 'admin:login' %}">Bejelentkezés</a>
       {% endif %}
     </div>
 
@@ -35,8 +36,8 @@
           <span class="kbd">csomagolással</span> és minden rejtett díjjal együtt.
         </p>
         <div class="cta">
-          <a class="btn" href="/info/">Kezdd az összehasonlítást</a>
-          <a class="btn secondary" href="/etterem/">Böngéssz éttermeket</a>
+          <a class="btn" href="{% url 'compare:info_list' %}">Kezdd az összehasonlítást</a>
+          <a class="btn secondary" href="{% url 'catalog:etterem_list' %}">Böngéssz éttermeket</a>
         </div>
       </div>
       <div class="card">
@@ -51,27 +52,27 @@
       <div class="card">
         <h3>Éttermek</h3>
         <p>CRUD az éttermekhez, platform és cím szerint.</p>
-        <p style="margin-top:10px"><a class="btn secondary" href="/etterem/">Megnyitás</a></p>
+  <p style="margin-top:10px"><a class="btn secondary" href="{% url 'catalog:etterem_list' %}">Megnyitás</a></p>
       </div>
       <div class="card">
         <h3>Ételek (read-only)</h3>
         <p>Kínálat áttekintése kategóriákkal és képekkel.</p>
-        <p style="margin-top:10px"><a class="btn secondary" href="/etel/">Megnyitás</a></p>
+  <p style="margin-top:10px"><a class="btn secondary" href="{% url 'catalog:etel_list' %}">Megnyitás</a></p>
       </div>
       <div class="card">
         <h3>Rejtett költségek</h3>
         <p>Szállítás, csomagolás, borravaló – éttermenként.</p>
-        <p style="margin-top:10px"><a class="btn secondary" href="/koltseg/">Megnyitás</a></p>
+  <p style="margin-top:10px"><a class="btn secondary" href="{% url 'billing:koltseg_list' %}">Megnyitás</a></p>
       </div>
       <div class="card">
         <h3>Étel-információk</h3>
         <p>Ár, szállítási idő, promóciók platformonként.</p>
-        <p style="margin-top:10px"><a class="btn secondary" href="/info/">Megnyitás</a></p>
+  <p style="margin-top:10px"><a class="btn secondary" href="{% url 'compare:info_list' %}">Megnyitás</a></p>
       </div>
       <div class="card">
         <h3>Mentések</h3>
         <p>Kedvenc ételek és ajánlatok egy helyen.</p>
-        <p style="margin-top:10px"><a class="btn secondary" href="/mentes/">Megnyitás</a></p>
+  <p style="margin-top:10px"><a class="btn secondary" href="{% url 'compare:saved_foods' %}">Megnyitás</a></p>
       </div>
       <div class="card">
         <h3>Admin</h3>
