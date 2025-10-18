@@ -1,0 +1,90 @@
+{% extends "_base.html" %}
+{% load static %}
+{% block content %}
+
+<form method="get" action="{% url 'catalog:kereses' %}" class="searchbar" style="display:flex; gap:.5rem; align-items:center; margin-bottom:1rem;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Keresés ételekre..." style="flex:1; padding:.6rem .8rem; border:1px solid #ddd; border-radius:8px;">
+  <select name="sort" style="padding:.55rem .6rem; border:1px solid #ddd; border-radius:8px;">
+    <option value="alap" {% if sort == "alap" %}selected{% endif %}>Alapértelmezett</option>
+    <option value="olcso" {% if sort == "olcso" %}selected{% endif %}>Olcsók</option>
+    <option value="draga" {% if sort == "draga" %}selected{% endif %}>Drágák</option>
+    <option value="ertekeles" {% if sort == "ertekeles" %}selected{% endif %}>Értékelés</option>
+    <option value="nev" {% if sort == "nev" %}selected{% endif %}>Név [A–Z]</option>
+  </select>
+  <button type="submit" class="btn">Keresés</button>
+</form>
+
+{% if q %}
+  <p style="color:#666; margin:0 0 .8rem 0;">Találatok erre: <b>{{ q }}</b> — {{ page_obj.paginator.count }} db</p>
+{% endif %}
+
+<div class="result-list" style="display:flex; flex-direction:column; gap:1rem;">
+  {% for etel in talalatok %}
+    <div class="card" style="display:grid; grid-template-columns:120px 1fr 220px; gap:1rem; align-items:center; padding:1rem; border:1px solid #eee; border-radius:12px;">
+      <!-- kép -->
+      <div style="width:120px; height:120px; display:flex; align-items:center; justify-content:center; background:#fafafa; border-radius:10px; overflow:hidden;">
+        {% if etel.kep_url %}
+          <img src="{{ etel.kep_url }}" alt="{{ etel.nev }}" style="max-width:120px; max-height:120px; object-fit:contain;">
+        {% else %}
+          <span style="color:#aaa; font-size:12px;">nincs kép</span>
+        {% endif %}
+      </div>
+
+      <!-- középső hasáb -->
+      <div>
+        <h3 style="margin:.1rem 0 .3rem 0;">
+          <a href="{% url 'catalog:etel_detail' etel.pk %}" style="text-decoration:none; color:#2b61d1;">{{ etel.nev }}</a>
+        </h3>
+
+        <!-- értékelés csillagokkal -->
+        {% with r=etel.avg_rating %}
+          {% if r %}
+            <div style="color:#ff9800; font-size:14px; margin-bottom:.25rem;">
+              {% for i in "12345" %}{% if forloop.counter <= r|floatformat:0 %}★{% else %}☆{% endif %}{% endfor %}
+              <span style="color:#666; font-size:12px;">({{ r|floatformat:1 }})</span>
+            </div>
+          {% else %}
+            <div style="color:#bbb; font-size:12px; margin-bottom:.25rem;">nincs értékelés</div>
+          {% endif %}
+        {% endwith %}
+
+        <div style="color:#444; line-height:1.35;">
+          {{ etel.leiras|default:"Nincs leírás."|truncatechars:220 }}
+        </div>
+      </div>
+
+      <!-- jobb hasáb -->
+      <div style="text-align:right;">
+        <div style="font-size:18px; font-weight:700; margin-bottom:.4rem;">
+          {% if etel.min_price %}{{ etel.min_price|floatformat:0 }} Ft-tól{% else %}—{% endif %}
+        </div>
+
+        <a href="{% url 'compare:info_list' %}?etel={{ etel.id }}" class="btn"
+           style="display:inline-block; background:#ff6a00; color:#fff; padding:.55rem .9rem; border-radius:8px; text-decoration:none;">
+           árak összevetése
+        </a>
+
+        <div style="color:#666; font-size:12px; margin-top:.35rem;">
+          {% if etel.offer_count %}{{ etel.offer_count }} ajánlat{% else %}nincs ajánlat{% endif %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div style="padding:1rem; border:1px dashed #ddd; border-radius:12px; color:#666;">
+      Nincs találat.
+    </div>
+  {% endfor %}
+</div>
+
+<!-- lapozó -->
+<div style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+  {% if page_obj.has_previous %}
+    <a class="btn" href="?q={{ q }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">Előző</a>
+  {% endif %}
+  <span style="align-self:center; color:#666;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a class="btn" href="?q={{ q }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">Következő</a>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,6 +1,11 @@
 {% extends "_base.html" %}
 {% block content %}
-<h1>Étterem–Étel infók</h1>
+
+{% if request.GET.etel and object_list %}
+  <h1>Ajánlatok ehhez: {{ object_list.0.etel.nev }}</h1>
+{% else %}
+  <h1>Étterem–Étel infók</h1>
+{% endif %}
 
 {% if user.is_authenticated and user.is_staff %}
   <p><a href="{% url 'compare:info_create' %}">+ Új rekord</a></p>
@@ -17,6 +22,7 @@
     <th>Promóció</th>
     {% if user.is_authenticated and user.is_staff %}<th>Műveletek</th>{% endif %}
   </tr>
+
   {% for o in object_list %}
     <tr>
       <td><a href="{% url 'compare:info_detail' o.pk %}">{{ o.etel.nev }}</a></td>
@@ -49,4 +55,5 @@
     </tr>
   {% endfor %}
 </table>
+
 {% endblock %}
