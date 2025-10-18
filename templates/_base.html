@@ -27,7 +27,15 @@
       <a href="{% url 'compare:info_list' %}">Étterem-Étel Információk</a>
       <a href="{% url 'catalog:etterem_list' %}">Éttermek</a>
     </div>
-    <div class="homebtn"><a href="{% url 'home' %}">Vissza a főoldalra</a></div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <a href="{% url 'catalog:kereses' %}">Keresés</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}">Kijelentkezés</a>
+      {% else %}
+        <a href="{% url 'admin:login' %}">Bejelentkezés</a>
+      {% endif %}
+      <div class="homebtn"><a href="{% url 'home' %}">Vissza a főoldalra</a></div>
+    </div>
   </div>
 
   <div class="container">

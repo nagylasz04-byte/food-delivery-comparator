@@ -1,6 +1,8 @@
 from django.views import View
 from django.shortcuts import render
 from django.urls import get_resolver
+from django.contrib.auth import logout as auth_logout
+from django.shortcuts import redirect
 
 
 class SiteIndexView(View):
@@ -56,3 +58,9 @@ class SiteIndexView(View):
         # sort for deterministic order
         patterns.sort()
         return render(request, self.template_name, {"paths": patterns})
+
+
+def simple_logout(request):
+    """Log out the user and redirect to home. Accepts GET so topbar links work."""
+    auth_logout(request)
+    return redirect("home")
