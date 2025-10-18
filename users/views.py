@@ -3,6 +3,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 
 from foodcompare.mixins import LoginRequired, WritePermissionRequired
 from .models import Felhasznalo, Jog, FelhJog
+from .forms import FelhasznaloCreationForm, FelhasznaloUpdateForm
 
 
 # FELHASZNALO CRUD (note: user creation via UI may require special handling for password)
@@ -18,7 +19,7 @@ class FelhasznaloDetailView(DetailView):
 
 class FelhasznaloCreateView(LoginRequired, WritePermissionRequired, CreateView):
 	model = Felhasznalo
-	fields = ["username", "nev", "email", "kedvenc_etterem", "is_staff", "is_active"]
+	form_class = FelhasznaloCreationForm
 	permission_required = "users.add_felhasznalo"
 	template_name = "users/felhasznalo_form.html"
 	success_url = reverse_lazy("users:felhasznalo_list")
@@ -26,7 +27,7 @@ class FelhasznaloCreateView(LoginRequired, WritePermissionRequired, CreateView):
 
 class FelhasznaloUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
 	model = Felhasznalo
-	fields = ["username", "nev", "email", "kedvenc_etterem", "is_staff", "is_active"]
+	form_class = FelhasznaloUpdateForm
 	permission_required = "users.change_felhasznalo"
 	template_name = "users/felhasznalo_form.html"
 	success_url = reverse_lazy("users:felhasznalo_list")
