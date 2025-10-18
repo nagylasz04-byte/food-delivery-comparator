@@ -1,0 +1,11 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Felhasználó — {{ object }}</h1>
+<p>Felhasználónév: {{ object.username }}</p>
+<p>Név: {{ object.nev }}</p>
+<p>Email: {{ object.email }}</p>
+<p>Kedvenc étterem: {{ object.kedvenc_etterem }}</p>
+{% if user.is_authenticated and user.is_staff %}
+  <p><a href="{% url 'users:felhasznalo_update' object.pk %}">Szerkeszt</a> | <a href="{% url 'users:felhasznalo_delete' object.pk %}">Törlés</a></p>
+{% endif %}
+{% endblock %}

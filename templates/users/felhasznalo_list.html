@@ -1,0 +1,36 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Felhasználók</h1>
+
+{% if user.is_authenticated and user.is_staff %}
+  <p><a href="{% url 'users:felhasznalo_create' %}">+ Új felhasználó</a></p>
+{% endif %}
+
+<table>
+  <tr>
+    <th>Felhasználónév</th>
+    <th>Név</th>
+    <th>Email</th>
+    <th>Kedvenc étterem</th>
+    {% if user.is_authenticated and user.is_staff %}<th>Műveletek</th>{% endif %}
+  </tr>
+  {% for o in object_list %}
+    <tr>
+      <td><a href="{% url 'users:felhasznalo_detail' o.pk %}">{{ o.username }}</a></td>
+      <td>{{ o.nev }}</td>
+      <td>{{ o.email }}</td>
+      <td>{{ o.kedvenc_etterem }}</td>
+      {% if user.is_authenticated and user.is_staff %}
+        <td>
+          <a href="{% url 'users:felhasznalo_update' o.pk %}">Szerk.</a> |
+          <a href="{% url 'users:felhasznalo_delete' o.pk %}">Törlés</a>
+        </td>
+      {% endif %}
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="5">Nincs adat.</td>
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}
