@@ -1,0 +1,23 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>Mentett ételek</h1>
+
+{% if saved %}
+  <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:.6rem;">
+    {% for m in saved %}
+      <li style="border:1px solid #eee; border-radius:10px; padding:.7rem 1rem; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b>{{ m.etel.nev }}</b>
+          {% if m.etel.kategoria %}<span style="color:#666;"> • {{ m.etel.kategoria }}</span>{% endif %}
+        </div>
+        <div style="display:flex; gap:.5rem;">
+          <a class="btn" href="{% url 'compare:offers_for_etel' m.etel.id %}">Összevetés</a>
+          <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:toggle_save' m.etel.id %}">Eltávolítás</a>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Még nincs mentett étel.</p>
+{% endif %}
+{% endblock %}

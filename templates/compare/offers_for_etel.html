@@ -20,11 +20,27 @@
   </div>
   <div>
     <h1 style="margin:.2rem 0 .6rem 0;">{{ etel.nev }}</h1>
+    {% if avg_rating %}
+      <div style="color:#ff9800; font-size:16px; margin-bottom:.25rem;">
+        {% for i in "12345" %}{% if forloop.counter <= avg_rating|floatformat:0 %}★{% else %}☆{% endif %}{% endfor %}
+        <span style="color:#666; font-size:12px;">({{ avg_rating|floatformat:1 }})</span>
+      </div>
+    {% endif %}
     <div style="margin:.4rem 0; font-size:20px; font-weight:700;">
       {% if min_total %}{{ min_total|floatformat:0 }} Ft-tól{% else %}—{% endif %}
       <span style="color:#666; font-size:14px; margin-left:.5rem;">
         {% if offer_count %}{{ offer_count }} ajánlat{% else %}Nincs ajánlat{% endif %}
       </span>
+    </div>
+    <div style="display:flex; gap:.5rem;">
+      {% if request.user.is_authenticated %}
+        <a class="btn" href="{% url 'compare:toggle_save' etel.id %}" style="background:#2b61d1; color:#fff;">
+          {% if is_saved %}Mentve ✓{% else %}Mentés{% endif %}
+        </a>
+        <a class="btn" href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
+      {% else %}
+        <span style="color:#666; font-size:14px;">Bejelentkezés után tudsz menteni.</span>
+      {% endif %}
     </div>
   </div>
 </div>

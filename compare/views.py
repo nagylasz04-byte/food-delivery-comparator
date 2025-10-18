@@ -1,11 +1,13 @@
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
-from django.db.models import Sum, F, Value, DecimalField
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy, reverse
+from django.db.models import Sum, F, Value, DecimalField, Avg
 from django.db.models.functions import Coalesce
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from catalog.models import Etel
-from .models import EtteremEtelInfo
+from .models import EtteremEtelInfo, Mentes
 from billing.models import EtteremKoltseg
 
 # ha már van nálad ez a mixin, maradhat
@@ -46,6 +48,11 @@ class OffersForEtelView(TemplateView):
 
         min_total = offers.first().total_price if offers else None
         offer_count = offers.count()
+        avg_rating = (
+            EtteremEtelInfo.objects.filter(etel_id=etel_id)
+            .aggregate(r=Avg("felhaszn_ertekelesek"))
+            .get("r")
+        )
 
         # költségek listázása éttermenként
         koltsegek_by_etterem = {}
@@ -59,9 +66,40 @@ class OffersForEtelView(TemplateView):
             "offers": offers,
             "min_total": min_total,
             "offer_count": offer_count,
+            "avg_rating": avg_rating,
             "koltsegek_by_etterem": koltsegek_by_etterem,
+            "is_saved": (
+                self.request.user.is_authenticated and
+                Mentes.objects.filter(felhasznalo=self.request.user, etel=etel).exists()
+            ),
         })
         return ctx
+
+
+@login_required
+def toggle_save(request, etel_id: int):
+    """Create or delete a Mentes for the current user and redirect back to the offers page."""
+    etel = get_object_or_404(Etel, pk=etel_id)
+    existing = Mentes.objects.filter(felhasznalo=request.user, etel=etel)
+    if existing.exists():
+        existing.delete()
+    else:
+        Mentes.objects.create(felhasznalo=request.user, etel=etel)
+    return redirect("compare:offers_for_etel", etel_id=etel.id)
+
+
+@method_decorator(login_required, name="dispatch")
+class SavedFoodsView(ListView):
+    template_name = "compare/saved_foods.html"
+    context_object_name = "saved"
+
+    def get_queryset(self):
+        return (
+            Mentes.objects
+            .filter(felhasznalo=self.request.user)
+            .select_related("etel")
+            .order_by("-letrehozva")
+        )
 
 
 # ---- (a korábbi CRUD/Lista nézeteid maradhatnak változatlanul) ----

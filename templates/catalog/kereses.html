@@ -59,7 +59,7 @@
           {% if etel.min_price %}{{ etel.min_price|floatformat:0 }} Ft-tól{% else %}—{% endif %}
         </div>
 
-        <a href="{% url 'compare:info_list' %}?etel={{ etel.id }}" class="btn"
+      <a href="{% url 'compare:offers_for_etel' etel.id %}" class="btn"
            style="display:inline-block; background:#ff6a00; color:#fff; padding:.55rem .9rem; border-radius:8px; text-decoration:none;">
            árak összevetése
         </a>

@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "django-check",
+			"type": "shell",
+			"command": "python - << 'PY'\\nimport os, sys\\nos.environ.setdefault('DJANGO_SETTINGS_MODULE','foodcompare.settings')\\nimport django\\ndjango.setup()\\nfrom django.core.management import call_command\\ncall_command('check')\\nprint('DJANGO CHECK: OK')\\nPY",
+			"problemMatcher": [
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "django-migrate",
+			"type": "shell",
+			"command": "python manage.py makemigrations ; python manage.py migrate",
+			"problemMatcher": [
+				"$eslint - stylish"
+			],
+			"group": "build"
+		}
+	]
+}
