@@ -6,21 +6,32 @@
   {% load static %}
   <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
   <style>
-    body{font-family:system-ui,Segoe UI,Arial;margin:24px}
-    nav a{margin-right:12px}
+    body{font-family:system-ui,Segoe UI,Arial;margin:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#fafafa;border-bottom:1px solid #eee}
+    .topbar .links a{margin-right:16px;color:#333;text-decoration:none}
+    .topbar .homebtn a{background:#0078d4;color:white;padding:8px 12px;border-radius:4px;text-decoration:none}
+    .container{padding:24px}
     table{border-collapse:collapse;width:100%}
     th,td{border:1px solid #ddd;padding:6px}
   </style>
 </head>
 <body>
-  <nav>
-    <a href="/etterem/">Éttermek</a>
-    <a href="/etel/">Ételek</a>
-    <a href="/koltseg/">Költségek</a>
-    <a href="/info/">Étel-info</a>
-    <a href="/mentett-etelek/">Mentett ételek</a>
-  </nav>
-  <hr>
-  {% block content %}{% endblock %}
+  <div class="topbar">
+    <div class="links">
+      <a href="{% url 'users:felhasznalo_list' %}">Felhasználók</a>
+      <a href="{% url 'users:felhjog_list' %}">Felhasználói Jogultságok</a>
+      <a href="{% url 'users:jog_list' %}">Jogosultságok</a>
+      <a href="{% url 'billing:koltseg_list' %}">Rejtett költségek</a>
+      <a href="{% url 'catalog:etel_list' %}">Ételek</a>
+      <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
+      <a href="{% url 'compare:info_list' %}">Étterem-Étel Információk</a>
+      <a href="{% url 'catalog:etterem_list' %}">Éttermek</a>
+    </div>
+    <div class="homebtn"><a href="{% url 'home' %}">Vissza a főoldalra</a></div>
+  </div>
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
 </body>
 </html>
