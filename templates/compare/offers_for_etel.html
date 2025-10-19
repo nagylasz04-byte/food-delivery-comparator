@@ -110,7 +110,7 @@
               {% endwith %}
             {% endif %}
 
-            {% if not koltsegek and not koltsegek_by_platform|dict_get:o.platform %}
+            {% if not koltsegek and not koltsegek_by_platform|dict_get:o.etterem.platform %}
               <span style="color:#888;">Nincs extra költség</span>
             {% endif %}
           </td>

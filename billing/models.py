@@ -19,10 +19,22 @@ class EtteremKoltseg(models.Model):
         null=True,
         blank=True,
     )
+    # optional: attach a hidden cost to a specific food item instead of a restaurant
+    etel = models.ForeignKey(
+        'catalog.Etel',
+        on_delete=models.CASCADE,
+        related_name='koltsegek',
+        null=True,
+        blank=True,
+        verbose_name='Étel',
+    )
     platform = models.CharField(max_length=20, choices=PLATFORMOK, blank=True)
     koltseg_tipus = models.CharField(max_length=30, choices=KOLTSEG_TIPUSOK)
     osszeg = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        target = self.etterem.nev if self.etterem else f"Platform: {self.get_platform_display()}"
+        if self.etel:
+            target = self.etel.nev
+        else:
+            target = self.etterem.nev if self.etterem else f"Platform: {self.get_platform_display()}"
         return f"{target} - {self.get_koltseg_tipus_display()} ({self.osszeg} Ft)"

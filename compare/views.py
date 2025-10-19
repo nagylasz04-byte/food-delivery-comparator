@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from django.db.models import Sum, F, Value, DecimalField, Avg, OuterRef, Subquery
+from django.db.models import Sum, F, Value, DecimalField, Avg, OuterRef, Subquery, Case, When
 from django.db.models.functions import Coalesce
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -43,9 +43,10 @@ class OffersForEtelView(TemplateView):
         )
         # NOTE: match platform-level costs to the offer's restaurant platform
         # OuterRef must point to the offer's etterem__platform
+        # Match platform-level costs to the offer's recorded platform field
         platform_sum_subq = (
             EtteremKoltseg.objects
-            .filter(platform=OuterRef('etterem__platform'), etterem__isnull=True)
+            .filter(platform=OuterRef('platform'), etterem__isnull=True)
             .values('platform')
             .annotate(s=Sum('osszeg'))
             .values('s')
@@ -67,7 +68,12 @@ class OffersForEtelView(TemplateView):
                     output_field=DecimalField(max_digits=10, decimal_places=2),
                 ),
             )
-            .annotate(cost_sum=F('_rest_sum') + F('_plat_sum'))
+            # Prefer platform-level aggregated costs when present, otherwise use restaurant-specific costs
+            .annotate(cost_sum=Case(
+                When(_plat_sum__gt=0, then=F('_plat_sum')),
+                default=F('_rest_sum'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            ))
             .annotate(total_price=F("ar") + F("cost_sum"))
             .order_by("total_price", "ar")
         )
@@ -90,8 +96,8 @@ class OffersForEtelView(TemplateView):
         # platform-level costs (etterem is null) grouped by platform
         koltsegek_by_platform = {}
         if offer_count:
-            # collect the platform value from each offer's restaurant (etterem.platform)
-            platforms = [o.etterem.platform for o in offers if o.etterem]
+            # collect the platform values from the offers' platform field (explicit)
+            platforms = list(offers.values_list('platform', flat=True).distinct())
             for k in EtteremKoltseg.objects.filter(etterem__isnull=True, platform__in=platforms):
                 koltsegek_by_platform.setdefault(k.platform, []).append(k)
 

@@ -16,7 +16,10 @@
   {% for o in object_list %}
     <tr>
       <td>
-        {% if o.etterem %}
+        {% if o.etel %}
+          <a href="{% url 'catalog:etel_detail' o.etel.pk %}">{{ o.etel.nev }}</a>
+          <small style="color:#666">(Ételhez rendelt költség)</small>
+        {% elif o.etterem %}
           <a href="{% url 'billing:koltseg_detail' o.pk %}">{{ o.etterem.nev }}</a>
           &nbsp;<small style="color:#666">({{ o.etterem.get_platform_display }})</small>
         {% else %}
