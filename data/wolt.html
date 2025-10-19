@@ -215,5 +215,40 @@
     $categoryFilter.addEventListener("change", renderTable);
     init();
   </script>
+  <!-- Machine-readable payload for scrapers: matches DB model tables -->
+  <script type="application/json" id="scrape_payload">
+  {
+    "etterem": [
+      { "id": 1, "nev": "Pizza Bella", "cim": "Budapest, VI. kerület, Andrássy út 12.", "platform": "wolt", "platform_url": "https://wolt.example/restaurant/1" },
+      { "id": 2, "nev": "Burger Mester", "cim": "Budapest, VII. kerület, Rákóczi út 33.", "platform": "wolt", "platform_url": "https://wolt.example/restaurant/2" },
+      { "id": 3, "nev": "Sushi Go", "cim": "Budapest, XIII. kerület, Váci út 8.", "platform": "wolt", "platform_url": "https://wolt.example/restaurant/3" }
+    ],
+    "etterem_koltseg": [
+      { "id": 1, "etterem_id": 1, "koltseg_tipus": "szallitas", "osszeg": 790 },
+      { "id": 2, "etterem_id": 1, "koltseg_tipus": "csomagolas", "osszeg": 190 },
+      { "id": 3, "etterem_id": 1, "koltseg_tipus": "borravalo", "osszeg": 0 },
+      { "id": 4, "etterem_id": 2, "koltseg_tipus": "szallitas", "osszeg": 990 },
+      { "id": 5, "etterem_id": 2, "koltseg_tipus": "csomagolas", "osszeg": 0 },
+      { "id": 6, "etterem_id": 2, "koltseg_tipus": "borravalo", "osszeg": 300 },
+      { "id": 7, "etterem_id": 3, "koltseg_tipus": "szallitas", "osszeg": 590 },
+      { "id": 8, "etterem_id": 3, "koltseg_tipus": "csomagolas", "osszeg": 190 },
+      { "id": 9, "etterem_id": 3, "koltseg_tipus": "borravalo", "osszeg": 0 }
+    ],
+    "etel": [
+      { "id": 1, "nev": "Margherita pizza", "leiras": "Paradicsom, mozzarella, bazsalikom", "kategoria": "pizza", "kep_url": "https://picsum.photos/seed/pizzaW/400" },
+      { "id": 2, "nev": "Dupla sajtburger", "leiras": "Marhahús, sajt, savanyú uborka", "kategoria": "burger", "kep_url": "https://picsum.photos/seed/burgerW/400" },
+      { "id": 3, "nev": "Csirke ramen", "leiras": "Csirke, tészta, tojás", "kategoria": "leves", "kep_url": "https://picsum.photos/seed/ramenW/400" },
+      { "id": 4, "nev": "Tonhal maki", "leiras": "Tonhal, rizs, nori", "kategoria": "sushi", "kep_url": "https://picsum.photos/seed/sushiW/400" },
+      { "id": 5, "nev": "Vega bowl", "leiras": "Quinoa, zöldségek, tahini", "kategoria": "vega", "kep_url": "https://picsum.photos/seed/bowlW/400" }
+    ],
+    "etterem_etel_info": [
+      { "id": "1-1", "etel_id": 1, "etterem_id": 1, "platform": "wolt", "ar": 2890, "szallitas_ido": "25-35 perc", "felhaszn_ertekeles": 4.6, "promocio": 0 },
+      { "id": "2-2", "etel_id": 2, "etterem_id": 2, "platform": "wolt", "ar": 3190, "szallitas_ido": "30-45 perc", "felhaszn_ertekeles": 4.4, "promocio": 300 },
+      { "id": "3-3", "etel_id": 3, "etterem_id": 3, "platform": "wolt", "ar": 3490, "szallitas_ido": "30-45 perc", "felhaszn_ertekeles": 4.5, "promocio": 0 },
+      { "id": "1-4", "etel_id": 4, "etterem_id": 1, "platform": "wolt", "ar": 2590, "szallitas_ido": "25-35 perc", "felhaszn_ertekeles": 4.2, "promocio": 0 },
+      { "id": "2-5", "etel_id": 5, "etterem_id": 2, "platform": "wolt", "ar": 2990, "szallitas_ido": "40-55 perc", "felhaszn_ertekeles": 4.1, "promocio": 500 }
+    ]
+  }
+  </script>
 </body>
 </html>
