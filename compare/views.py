@@ -121,7 +121,7 @@ class InfoDetailView(DetailView):
 
 class InfoCreateView(LoginRequired, WritePermissionRequired, CreateView):
     model = EtteremEtelInfo
-    fields = ["etel", "etterem", "ar", "szallitas_ido", "felhaszn_ertekelesek", "promocio"]
+    fields = ["etel", "etterem", "platform", "ar", "szallitas_ido", "felhaszn_ertekelesek", "promocio"]
     permission_required = "compare.add_etteremetelinfo"
     template_name = "compare/info_form.html"
     success_url = reverse_lazy("compare:info_list")
@@ -129,7 +129,7 @@ class InfoCreateView(LoginRequired, WritePermissionRequired, CreateView):
 
 class InfoUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
     model = EtteremEtelInfo
-    fields = ["etel", "etterem", "ar", "szallitas_ido", "felhaszn_ertekelesek", "promocio"]
+    fields = ["etel", "etterem", "platform", "ar", "szallitas_ido", "felhaszn_ertekelesek", "promocio"]
     permission_required = "compare.change_etteremetelinfo"
     template_name = "compare/info_form.html"
     success_url = reverse_lazy("compare:info_list")
