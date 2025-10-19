@@ -60,6 +60,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "foodcompare.wsgi.application"
 
 # --- Adatbázis (SQLite fejlesztéshez) ---
+# DATABASE configuration: prefer DATABASE_URL (e.g. provided by docker-compose) otherwise use local sqlite
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
