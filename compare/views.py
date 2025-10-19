@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from django.db.models import Sum, F, Value, DecimalField, Avg
+from django.db.models import Sum, F, Value, DecimalField, Avg, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -31,17 +31,43 @@ class OffersForEtelView(TemplateView):
         etel = get_object_or_404(Etel, pk=etel_id)
 
         # ajánlatok + összesített költség + total ár
+        # Sum hidden costs attached to the specific restaurant PLUS
+        # platform-level costs (EtteremKoltseg rows where etterem is null and platform matches)
+        # We use Subquery to aggregate each side and add them together per-offer.
+        restaurant_sum_subq = (
+            EtteremKoltseg.objects
+            .filter(etterem=OuterRef('etterem_id'))
+            .values('etterem')
+            .annotate(s=Sum('osszeg'))
+            .values('s')
+        )
+        # NOTE: match platform-level costs to the offer's restaurant platform
+        # OuterRef must point to the offer's etterem__platform
+        platform_sum_subq = (
+            EtteremKoltseg.objects
+            .filter(platform=OuterRef('etterem__platform'), etterem__isnull=True)
+            .values('platform')
+            .annotate(s=Sum('osszeg'))
+            .values('s')
+        )
+
         offers = (
             EtteremEtelInfo.objects
             .filter(etel_id=etel_id)
             .select_related("etterem", "etel")
             .annotate(
-                cost_sum=Coalesce(
-                    Sum("etterem__koltsegek__osszeg"),
+                _rest_sum=Coalesce(
+                    Subquery(restaurant_sum_subq, output_field=DecimalField(max_digits=10, decimal_places=2)),
                     Value(0),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
-                )
+                ),
+                _plat_sum=Coalesce(
+                    Subquery(platform_sum_subq, output_field=DecimalField(max_digits=10, decimal_places=2)),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
             )
+            .annotate(cost_sum=F('_rest_sum') + F('_plat_sum'))
             .annotate(total_price=F("ar") + F("cost_sum"))
             .order_by("total_price", "ar")
         )
@@ -61,6 +87,14 @@ class OffersForEtelView(TemplateView):
             for k in EtteremKoltseg.objects.filter(etterem_id__in=etterem_ids):
                 koltsegek_by_etterem.setdefault(k.etterem_id, []).append(k)
 
+        # platform-level costs (etterem is null) grouped by platform
+        koltsegek_by_platform = {}
+        if offer_count:
+            # collect the platform value from each offer's restaurant (etterem.platform)
+            platforms = [o.etterem.platform for o in offers if o.etterem]
+            for k in EtteremKoltseg.objects.filter(etterem__isnull=True, platform__in=platforms):
+                koltsegek_by_platform.setdefault(k.platform, []).append(k)
+
         ctx.update({
             "etel": etel,
             "offers": offers,
@@ -68,6 +102,7 @@ class OffersForEtelView(TemplateView):
             "offer_count": offer_count,
             "avg_rating": avg_rating,
             "koltsegek_by_etterem": koltsegek_by_etterem,
+            "koltsegek_by_platform": koltsegek_by_platform,
             "is_saved": (
                 self.request.user.is_authenticated and
                 Mentes.objects.filter(felhasznalo=self.request.user, etel=etel).exists()

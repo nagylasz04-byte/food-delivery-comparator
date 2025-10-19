@@ -127,16 +127,18 @@ class Command(BaseCommand):
                 if etterem_id is not None:
                     etterem_obj = etterem_map.get(str(etterem_id))
 
-                if not etterem_obj:
-                    platform_hint = (data.get('etterem') or [{}])[0].get('platform') if data.get('etterem') else None
-                    etterem_obj = Etterem.objects.filter(platform=platform_hint).first() if platform_hint else Etterem.objects.first()
-
-                if not etterem_obj:
-                    self.stdout.write(self.style.WARNING(f"Skipping cost: could not resolve restaurant for cost entry {k}"))
-                    continue
+                platform_hint = (data.get('etterem') or [{}])[0].get('platform') if data.get('etterem') else None
+                # if we couldn't resolve specific restaurant, create a platform-level cost
+                if not etterem_obj and platform_hint:
+                    etterem_obj = None
 
                 koltseg_tipus_norm = koltseg_tipus or 'egyeb'
-                koltseg, created = EtteremKoltseg.objects.get_or_create(etterem=etterem_obj, koltseg_tipus=koltseg_tipus_norm, defaults={'osszeg': Decimal(0)})
+                # prefer unique by (etterem, platform, koltseg_tipus) — if etterem is None, platform must be set
+                defaults = {'osszeg': Decimal(0)}
+                if etterem_obj:
+                    koltseg, created = EtteremKoltseg.objects.get_or_create(etterem=etterem_obj, koltseg_tipus=koltseg_tipus_norm, defaults=defaults)
+                else:
+                    koltseg, created = EtteremKoltseg.objects.get_or_create(etterem=None, platform=platform_hint or '', koltseg_tipus=koltseg_tipus_norm, defaults=defaults)
                 try:
                     dec = Decimal(osszeg or 0)
                 except Exception:

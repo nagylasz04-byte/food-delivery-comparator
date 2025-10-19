@@ -83,13 +83,34 @@
             {{ o.total_price|floatformat:0 }} Ft
           </td>
           <td style="padding:.8rem;">
+            {% comment %} show restaurant-level costs first {% endcomment %}
             {% if koltsegek %}
               <ul style="margin:0; padding-left:1rem; color:#444;">
                 {% for k in koltsegek %}
                   <li>{{ k.get_koltseg_tipus_display }}: {{ k.osszeg|floatformat:0 }} Ft</li>
                 {% endfor %}
               </ul>
-            {% else %}
+            {% endif %}
+
+            {% comment %} then platform-level costs (platform-level entries where etterem is null) {% endcomment %}
+            {% if o.etterem %}
+              {% with pkey=o.etterem.platform %}
+                {% with pkol=koltsegek_by_platform|dict_get:pkey %}
+                  {% if pkol %}
+                    <div style="margin-top:.4rem; color:#333; font-size:13px;">
+                      <strong>Platform költségek ({{ o.etterem.get_platform_display }}):</strong>
+                      <ul style="margin:.25rem 0 0 1rem; padding:0; color:#444;">
+                        {% for k in pkol %}
+                          <li>{{ k.get_koltseg_tipus_display }}: {{ k.osszeg|floatformat:0 }} Ft</li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+              {% endwith %}
+            {% endif %}
+
+            {% if not koltsegek and not koltsegek_by_platform|dict_get:o.platform %}
               <span style="color:#888;">Nincs extra költség</span>
             {% endif %}
           </td>

@@ -8,14 +8,21 @@
 
 <table>
   <tr>
-    <th>Étterem</th>
+    <th>Étterem / Platform</th>
     <th>Típus</th>
     <th>Összeg</th>
     {% if user.is_authenticated and user.is_staff %}<th>Műveletek</th>{% endif %}
   </tr>
   {% for o in object_list %}
     <tr>
-      <td><a href="{% url 'billing:koltseg_detail' o.pk %}">{{ o.etterem.nev }}</a></td>
+      <td>
+        {% if o.etterem %}
+          <a href="{% url 'billing:koltseg_detail' o.pk %}">{{ o.etterem.nev }}</a>
+          &nbsp;<small style="color:#666">({{ o.etterem.get_platform_display }})</small>
+        {% else %}
+          <span style="font-weight:600">Platform: {{ o.get_platform_display }}</span>
+        {% endif %}
+      </td>
       <td>{{ o.get_koltseg_tipus_display }}</td>
       <td>{{ o.osszeg }} Ft</td>
       {% if user.is_authenticated and user.is_staff %}
