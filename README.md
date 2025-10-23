@@ -3,75 +3,63 @@ Food Delivery Comparator — Használati útmutató
 
 Ez a dokumentum lépésről-lépésre bemutatja, hogyan állítsd be, futtasd és használd a "food-delivery-comparator" projektet egy új gépen (Windows / PowerShell környezetre optimalizálva). Tartalmazza továbbá a scraping pipeline futtatását, az adatbázis alapműveleteket (reset, migrációk), és hibaelhárítási tippeket.
 
-Tartalom
-- Követelmények
-- Gyors kezdés (helyi fejlesztés)
-- Teljes telepítés és környezet létrehozása új gépen
-- Adatbázis kezelése (reset törléssel)
-- Scraping pipeline futtatása
-- Hasznos parancsok
-- Hibakeresés és tippek
+Fentebb szerepelt egy részletes Docker-es beállítási útmutató, ezt eltávolítottuk a repo-ból. A következők maradnak itt, amelyek a helyi indításhoz és üzemeltetéshez szükségesek.
 
-Követelmények
-- Python 3.10+ telepítve
-- pip
-- (Ajánlott) virtuális környezet (venv)
-- SQLite (alapértelmezés szerint a projekt használja)
+Rövid indítási és üzemeltetési parancsok
+---------------------------------------
 
-Gyors kezdés (helyi fejlesztés)
-1) Klónozd a repót és lépj be a mappába
-
-```powershell
-git clone <repo-url>
-cd food-delivery-comparator
-```
-
-2) Hozz létre és aktiválj egy virtuális környezetet (PowerShell)
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-3) Telepítsd a függőségeket
-(Nincsen külön requirements.txt? Ha van, telepítsd azt; ha nincs, a projekt alap függőségei a Django és BeautifulSoup lehetnek.)
-
-```powershell
-pip install -r requirements.txt
-# ha nincs requirements.txt
-pip install django beautifulsoup4 requests
-```
-
-4) Migrációk futtatása és alapadatok
+- Migrációk és admin felhasználó létrehozása:
 
 ```powershell
 python manage.py migrate
-python manage.py createsuperuser  # ha admin felhasználót akarsz
+python manage.py createsuperuser
 ```
 
-5) Fejlesztői szerver indítása
+- Scraping (kimeneti fájlok a `data/` mappában):
+
+```powershell
+python scripts/scrape_wolt.py
+# Foodora: véletlenszerű payload generálása --regen opcióval
+python scripts/scrape_foodora.py --regen
+```
+
+- Importálás a Django DB-be:
+
+```powershell
+python manage.py import_scraped
+```
+
+- Fejlesztői szerver indítása:
 
 ```powershell
 python manage.py runserver
 # majd böngészőben: http://127.0.0.1:8000/
 ```
 
-Teljes telepítés (új gép)
-1) Kövesd a fenti lépéseket (klón, venv, függőségek).
-2) Ha a projekt külön fájlokban tárolt titkokat/konfigurációt igényel, állítsd be a környezeti változókat vagy a `foodcompare/settings.py` megfelelő részeit.
+Hasznos gyorsparancsok és hibaelhárítás
+-------------------------------------
 
-Adatbázis kezelése
-- Az alkalmazás alapértelmezés szerint SQLite-ot használ (`db.sqlite3`).
-- Az adatbázis teljes törlése (reset) — ha vissza akarod állítani tiszta állapotra, egyszerűen töröld a fájlt és futtasd újra a migrációkat:
+- Ellenőrizd a projektet (Django check):
+
+```powershell
+python manage.py check
+```
+
+- Ha új csomagokat adtál hozzá, frissítsd a `requirements.txt` fájlt:
+
+```powershell
+pip freeze > requirements.txt
+```
+
+- Adatbázis törlése (reset):
 
 ```powershell
 # Állj a projekt gyökérkönyvtárába
-rm db.sqlite3
+Remove-Item db.sqlite3  # vagy rm db.sqlite3
 python manage.py migrate
 ```
 
-Megjegyzés Windows PowerShell-ben: `rm` működik, vagy `Remove-Item db.sqlite3`.
-
+Ha szeretnéd, készítek egy PowerShell helper scriptet (`run_dev.ps1`), ami ezeket a lépéseket automatikusan végrehajtja (venv létrehozás, migrate, scrape --regen, import_scraped, runserver).*** End Patch
 Scraping pipeline (lokális HTML fixtures és import)
 A projekt tartalmazott egyszerű scrapper/Extractor scriptet, ami a `data/` könyvtárban lévő HTML fájlokat dolgozza fel.
 
@@ -80,7 +68,14 @@ A projekt tartalmazott egyszerű scrapper/Extractor scriptet, ami a `data/` kön
 ```powershell
 # Példa: futtasd a wrapper scriptet, amely létrehozza a data/*.extracted.json fájlokat
 python scripts/scrape_wolt.py
-python scripts/scrape_foodora.py
+# A Foodora scraper most képes véletlenszerű payload-ot generálni is. Ha
+# mindig friss (random) adatot akarsz, add meg a --regen flag-et:
+python scripts/scrape_foodora.py --regen
+
+# A generátor kód itt található: scripts/generate_foodora_payload.py
+# A scrapper a kibontott JSON-t a projektben a következő fájlokba írja:
+#   data/wolt.html.extracted.json
+#   data/foodora.html.extracted.json
 ```
 
 2) Az import futtatása (a scraped JSON fájlokból a Django adatbázisba):
