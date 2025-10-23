@@ -14,14 +14,15 @@ class KoltsegDetailView(DetailView):
 
 class KoltsegCreateView(LoginRequired, WritePermissionRequired, CreateView):
     model = EtteremKoltseg
-    fields = ["etterem", "koltseg_tipus", "osszeg"]
+    # prefer attaching costs to an Etel (food item) and allow selecting platform as well
+    fields = ["etel", "platform", "koltseg_tipus", "osszeg"]
     permission_required = "billing.add_etteremkoltseg"
     success_url = reverse_lazy("billing:koltseg_list")
     template_name = "billing/koltseg_form.html"
 
 class KoltsegUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
     model = EtteremKoltseg
-    fields = ["etterem", "koltseg_tipus", "osszeg"]
+    fields = ["etel", "platform", "koltseg_tipus", "osszeg"]
     permission_required = "billing.change_etteremkoltseg"
     success_url = reverse_lazy("billing:koltseg_list")
     template_name = "billing/koltseg_form.html"
