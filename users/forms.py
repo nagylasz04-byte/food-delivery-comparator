@@ -8,6 +8,12 @@ class FelhasznaloCreationForm(UserCreationForm):
         model = Felhasznalo
         fields = ("username", "nev", "email", "kedvenc_etterem")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # kedvenc_etterem should be optional in the registration form
+        if 'kedvenc_etterem' in self.fields:
+            self.fields['kedvenc_etterem'].required = False
+
 
 class FelhasznaloUpdateForm(forms.ModelForm):
     password = forms.CharField(required=False, widget=forms.PasswordInput, help_text="Hagyja üresen, ha nem akarja megváltoztatni a jelszót.")

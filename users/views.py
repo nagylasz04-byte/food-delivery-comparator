@@ -25,6 +25,21 @@ class FelhasznaloCreateView(LoginRequired, WritePermissionRequired, CreateView):
 	success_url = reverse_lazy("users:felhasznalo_list")
 
 
+# Public registration view (for new users)
+class RegisterView(CreateView):
+	model = Felhasznalo
+	form_class = FelhasznaloCreationForm
+	template_name = "users/felhasznalo_form.html"
+	success_url = reverse_lazy("login")
+
+	def dispatch(self, request, *args, **kwargs):
+		# redirect authenticated users away from registration page
+		if request.user.is_authenticated:
+			from django.shortcuts import redirect
+			return redirect("home")
+		return super().dispatch(request, *args, **kwargs)
+
+
 class FelhasznaloUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
 	model = Felhasznalo
 	form_class = FelhasznaloUpdateForm

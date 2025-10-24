@@ -22,3 +22,8 @@ urlpatterns = [
     path("felhjog/<int:pk>/szerkesztes/", views.FelhJogUpdateView.as_view(), name="felhjog_update"),
     path("felhjog/<int:pk>/torles/", views.FelhJogDeleteView.as_view(), name="felhjog_delete"),
 ]
+
+# Public registration URL (friendly path)
+urlpatterns += [
+    path("register/", views.RegisterView.as_view(), name="register"),
+]
