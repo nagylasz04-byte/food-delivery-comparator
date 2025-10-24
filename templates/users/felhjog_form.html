@@ -1,5 +1,5 @@
 {% extends "_base.html" %}
 {% block content %}
-<h1>Felhasználó–Jog űrlap</h1>
+<h1>Felhasználó–Jog hozzáadása</h1>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button>Mentés</button></form>
 {% endblock %}

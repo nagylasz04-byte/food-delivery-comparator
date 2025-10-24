@@ -1,6 +1,6 @@
 {% extends "_base.html" %}
 {% block content %}
-<h1>Rejtett költségek</h1>
+<h1>Rejtett költségek (Ételenként,platformonként)</h1>
 
 {% if user.is_authenticated and user.is_staff %}
   <p><a href="{% url 'billing:koltseg_create' %}">+ Új költség</a></p>
