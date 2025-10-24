@@ -59,10 +59,6 @@ Remove-Item db.sqlite3  # vagy rm db.sqlite3
 python manage.py migrate
 ```
 
-Ha szeretnéd, készítek egy PowerShell helper scriptet (`run_dev.ps1`), ami ezeket a lépéseket automatikusan végrehajtja (venv létrehozás, migrate, scrape --regen, import_scraped, runserver).*** End Patch
-Scraping pipeline (lokális HTML fixtures és import)
-A projekt tartalmazott egyszerű scrapper/Extractor scriptet, ami a `data/` könyvtárban lévő HTML fájlokat dolgozza fel.
-
 1) A scraping futtatása (helyi fixtures):
 
 ```powershell
