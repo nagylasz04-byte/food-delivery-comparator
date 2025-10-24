@@ -84,35 +84,35 @@
       "nev": "Margherita pizza",
       "leiras": "Paradicsom, mozzarella, bazsalikom",
       "kategoria": "pizza",
-      "kep_url": "https://picsum.photos/seed/pizzaW/400"
+      "kep_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTH6SShASkcC_o-T2RZ6D3FqB0boGFmlpn2OIGC7OWUt3gDjA_o0OsVrveSDj8AonNnSBIgRqU724LKyMqOkFjtwUV2XX246g2r5rdB5sw"
     },
     {
       "id": 2,
       "nev": "Dupla sajtburger",
       "leiras": "Marhahús, sajt, savanyú uborka",
       "kategoria": "burger",
-      "kep_url": "https://picsum.photos/seed/burgerW/400"
+      "kep_url": "https://s7d1.scene7.com/is/image/mcdonalds/ADIG_202_DSajtburger_Termekkep_832x822:nutrition-calculator-tile?wid=822&hei=822&dpr=off"
     },
     {
       "id": 3,
       "nev": "Csirke ramen",
       "leiras": "Csirke, tészta, tojás",
       "kategoria": "leves",
-      "kep_url": "https://picsum.photos/seed/ramenW/400"
+      "kep_url": "https://marieclaire.hu/uploads/2023/03/ramenv2.png"
     },
     {
       "id": 4,
       "nev": "Tonhal maki",
       "leiras": "Tonhal, rizs, nori",
       "kategoria": "sushi",
-      "kep_url": "https://picsum.photos/seed/sushiW/400"
+      "kep_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcYfn1vRqe7HHBKvNmTINd-vkow7yBwkh2GQ&s"
     },
     {
       "id": 5,
       "nev": "Vega bowl",
       "leiras": "Quinoa, zöldségek, tahini",
       "kategoria": "vega",
-      "kep_url": "https://picsum.photos/seed/bowlW/400"
+      "kep_url": "https://palanta-salata.okospincer.com/admin/wp-content/uploads/sites/12/2020/03/buddha_bowl_vega-1.jpg"
     }
   ],
   "etterem_etel_info": [

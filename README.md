@@ -53,23 +53,57 @@ pip freeze > requirements.txt
 
 - Adatbázis törlése (reset):
 
+Ha újra szeretnéd építeni az SQLite adatbázist, először győződj meg róla, hogy a fejlesztői szerver (`runserver`) nincs futtatva, illetve nincs semmilyen folyamat, amely nyitva tartja a `db.sqlite3` fájlt. A legegyszerűbb mód: zárd be a terminált vagy állítsd le a `runserver`-t Ctrl+C-vel.
+
+Windows PowerShell (biztonságosabb, létezés-ellenőrzéssel):
+
 ```powershell
 # Állj a projekt gyökérkönyvtárába
-Remove-Item db.sqlite3  # vagy rm db.sqlite3
+Set-Location -Path "$(Split-Path -Path $MyInvocation.MyCommand.Definition -Parent)" # opcionális, ha a README alapján futtatod
+
+# 1) Állítsd le a futó dev szervert (ha van):
+# - Ha a szerver ugyanabban a terminálban fut, nyomj Ctrl+C.
+# - Ha háttérben fut, zárd be vagy keresd meg és állítsd le a folyamatot.
+
+# 2) Töröld az adatbázist, ha létezik
+if (Test-Path .\db.sqlite3) {
+  Remove-Item .\db.sqlite3 -Force
+  Write-Host "db.sqlite3 törölve"
+} else {
+  Write-Host "db.sqlite3 nem található, semmi törlés" -ForegroundColor Yellow
+}
+
+# 3) Futtasd a migrációkat, hogy új adatbázis jöjjön létre
 python manage.py migrate
 ```
 
+Unix / Git Bash / macOS (alternatíva):
+
+```bash
+# Állj a projekt gyökérkönyvtárába
+rm -f db.sqlite3
+python manage.py migrate
+```
+
+Megjegyzés: a `db.sqlite3` törlése mindent eltávolít a helyi DB-ből (adatok, admin felhasználók stb.). Ha csak migrációs problémád van, először próbáld meg a `python manage.py migrate --plan` és `python manage.py migrate` parancsokat.
+
+---
+
 1) A scraping futtatása (helyi fixtures):
 
+Az alkalmazás melletti demo/fixture HTML fájlokból (helyi `data/` könyvtár) kinyerjük a géppel olvasható JSON payload-ot, ami alapján az import parancs feltölti az adatbázist.
+
+PowerShell példa (wrapper szkriptek):
+
 ```powershell
-# Példa: futtasd a wrapper scriptet, amely létrehozza a data/*.extracted.json fájlokat
+# Wolt: kinyeri a beágyazott payload-ot és létrehozza a data/wolt.html.extracted.json fájlt
 python scripts/scrape_wolt.py
-# A Foodora scraper most képes véletlenszerű payload-ot generálni is. Ha
-# mindig friss (random) adatot akarsz, add meg a --regen flag-et:
+
+# Foodora: ha mindig friss (random) adatot akarsz, add meg a --regen flag-et (szerver-oldali generátor)
 python scripts/scrape_foodora.py --regen
 
-# A generátor kód itt található: scripts/generate_foodora_payload.py
-# A scrapper a kibontott JSON-t a projektben a következő fájlokba írja:
+# A generátor forrása: scripts/generate_foodora_payload.py
+# A scrapper a kibontott JSON-t a következő fájlokba írja:
 #   data/wolt.html.extracted.json
 #   data/foodora.html.extracted.json
 ```
@@ -79,6 +113,16 @@ python scripts/scrape_foodora.py --regen
 ```powershell
 python manage.py import_scraped
 ```
+
+Ha az `import_scraped` parancs hibát jelez (például hiányzó mezők vagy migrációs problémák), ellenőrizd a következőt:
+
+- futtattad-e a `python manage.py migrate`-et a lépés 1 után;
+- a `data/*.extracted.json` fájlok léteznek-e és valid JSON-e(ket) tartalmaznak;
+- nézd meg a management parancs hibakimenetét — gyakran megmondja, melyik mező hiányzik vagy mi a probléma.
+
+---
+
+Ha szeretnéd, beállítok egy rövid PowerShell helper scriptet (`run_dev.ps1`), ami ezeket a lépéseket automatikusan végrehajtja (leállítja a runserver-t az aktív terminálon, törli a DB-t, migrál, futtatja a scrappereket és az importot). Jelezd, ha elkészítsem.
 
 Ezzel a `catalog`, `compare` és `billing` modellekbe kerülnek az adatok (etterem, etel, etterem_koltseg, etterem_etel_info).
 
