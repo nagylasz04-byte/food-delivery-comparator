@@ -114,6 +114,66 @@ Remove-Item db.sqlite3
 python manage.py migrate
 ```
 
+Migrations workflow — hogyan kerüld el a "model changes not reflected in a migration" hibát
+--------------------------------------------------------------------------
+
+Gyakori hiba: megváltoztatod a modelleket (mezők, indexek, choices, verbose_name), de elfelejted létrehozni a migrációs fájlokat és commitolni őket. Ennek eredménye a Django figyelmeztetése: "Your models in app(s) have changes that are not yet reflected in a migration".
+
+Kövesd ezeket a lépéseket minden model-változtatás után és minden PR-ben, hogy a probléma ne forduljon elő:
+
+1) Előnézet (dry-run) — nézd meg mit tenne a `makemigrations`:
+
+```powershell
+python manage.py makemigrations --dry-run --verbosity 3
+# Vagy konkrét appra:
+python manage.py makemigrations compare --dry-run --verbosity 3
+```
+
+2) Hozd létre a migrációt:
+
+```powershell
+python manage.py makemigrations
+# vagy csak a módosított appokra:
+python manage.py makemigrations compare
+```
+
+3) Alkalmazd az adatbázisra:
+
+```powershell
+python manage.py migrate
+```
+
+4) Ellenőrizd, hogy a migrációk alkalmazva lettek:
+
+```powershell
+python manage.py showmigrations compare
+```
+
+5) Commitolj és pusholj minden új migrációs fájlt (`<app>/migrations/000X_*.py`) a PR-edbe — NE hagyd ki a migrations mappát a commitból!
+
+Példa git lépések:
+
+```powershell
+git add compare/migrations/
+git commit -m "compare: add migration for platform/index change"
+git push
+```
+
+CI javaslat (ajánlott): add hozzá a `makemigrations --check` lépést a CI pipeline-hoz, így a PR nem mehet át, ha kimaradt egy migráció:
+
+```yaml
+# példa GitHub Actions step
+- name: Check migrations
+  run: python manage.py makemigrations --check
+```
+
+Tippek a speciális esetekhez:
+- Ha a dry-run `RenameIndex` vagy `AlterField` műveletet javasol (mint az előző példa), az általában rendben van — hozd létre a migrációt és alkalmazd.
+- Ha véletlenül módosítottad a modellkódot (pl. elgépelés), állítsd vissza a kódot és futtasd újra a dry-run-t mielőtt migrációt készítesz.
+
+Ezzel a folyamattal elkerülöd, hogy a modellek és az adatbázis sémája szinkronon kívül legyenek, és a csapatod minden tagja ugyanazokat a migrációs fájlokat kapja meg a PR-ben.
+
+
 További megjegyzések
 --------------------
 
