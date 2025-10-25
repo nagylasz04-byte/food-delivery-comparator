@@ -1,255 +1,124 @@
+```markdown
 Food Delivery Comparator — Használati útmutató
-===============================================
+=============================================
 
-Ez a dokumentum lépésről-lépésre bemutatja, hogyan állítsd be, futtasd és használd a "food-delivery-comparator" projektet egy új gépen (Windows / PowerShell környezetre optimalizálva). Tartalmazza továbbá a scraping pipeline futtatását, az adatbázis alapműveleteket (reset, migrációk), és hibaelhárítási tippeket.
+Ez a dokumentum lépésről lépésre bemutatja, hogyan állítsd be és használd a projektet (Windows / PowerShell). Kiemelten tartalmazza a két scraping módot, azok telepítési követelményeit és példaparancsokat.
 
-Fentebb szerepelt egy részletes Docker-es beállítási útmutató, ezt eltávolítottuk a repo-ból. A következők maradnak itt, amelyek a helyi indításhoz és üzemeltetéshez szükségesek.
+Rövid összefoglaló a scraper-ekről
+----------------------------------
 
-Rövid indítási és üzemeltetési parancsok
----------------------------------------
+- Wolt: az oldalba beágyazott (inline) JSON/JS adatot használjuk — ez gyors, API‑szerű kinyerés. A script: `scripts/scrape_wolt.py`.
+- Foodora: a demo oldal kliens-oldali JS-t futtat és `window.DATA` objektumot hoz létre. Két lehetőség:
+  - Headless (screen-scraper) — `scripts/scrape_foodora_browser.py` (Playwright szükséges): a böngésző futtatja a JS-t és a ténylegesen renderelt adatot olvassa ki.
+  - Fallback / generator — `scripts/scrape_foodora.py --regen`: ha nincs Playwright, vagy reprodukálható random adatra van szükség.
 
-- Migrációk és admin felhasználó létrehozása:
+Előkészületek
+-------------
+
+1) Klónozd a repót és lépj a projekt gyökérkönyvtárába.
+2) Hozz létre virtuális környezetet és aktiváld (PowerShell példa):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+3) Telepítsd a projekt függőségeit (ha van `requirements.txt`):
+
+```powershell
+pip install -r requirements.txt
+```
+
+Ha Playwright-ot használod a Foodora headless scrapperhez:
+
+```powershell
+pip install playwright
+python -m playwright install
+```
+
+Alapvető parancsok (PowerShell)
+-------------------------------
+
+Migrációk és admin:
 
 ```powershell
 python manage.py migrate
 python manage.py createsuperuser
 ```
 
-- Scraping (kimeneti fájlok a `data/` mappában):
+Scrape — Wolt (beágyazott JSON):
 
 ```powershell
-python scripts/scrape_wolt.py
-# Foodora: véletlenszerű payload generálása --regen opcióval
-python scripts/scrape_foodora.py --regen
+python .\scripts\scrape_wolt.py
+# kimenet: data/wolt.html.extracted.json
 ```
 
-- Importálás a Django DB-be:
+Scrape — Foodora (headless / a megjelenített adatokból):
+
+```powershell
+# csak egyszer: telepítsd a böngésző binárisokat
+python -m pip install playwright
+python -m playwright install
+
+python .\scripts\scrape_foodora_browser.py
+# kimenet: data/foodora.html.extracted.json
+```
+
+Scrape — Foodora (fallback / szerver-oldali generátor):
+
+```powershell
+python .\scripts\scrape_foodora.py --regen
+# kimenet: data/foodora.html.extracted.json
+```
+
+Importálás az adatbázisba:
 
 ```powershell
 python manage.py import_scraped
 ```
 
-- Fejlesztői szerver indítása:
+Fejlesztői szerver:
 
 ```powershell
 python manage.py runserver
 # majd böngészőben: http://127.0.0.1:8000/
 ```
 
-Hasznos gyorsparancsok és hibaelhárítás
--------------------------------------
+Hol vannak az outputok?
+- A scraper-ek `data/` könyvtárba írják az extracted JSON fájlokat (pl. `data/wolt.html.extracted.json`, `data/foodora.html.extracted.json`). Ezeket a `import_scraped` parancs dolgozza fel.
 
-- Ellenőrizd a projektet (Django check):
+Tippek és gyakori hibák
+-----------------------
+
+- Ha a Foodora headless scraper nem talál `window.DATA`-t (timeout), a `scrape_foodora_browser.py` fallback-el a `scrape_foodora.py`-t hívja.
+- Mindig a projekt gyökeréből futtasd a scriptet, mert az utak relatív módon vannak beállítva a `scripts/`-hez.
+- Ha nem használod a headless módot, a `--regen` opcióval reprodukálható, szerver-oldali payload-ot készíthetsz.
+
+Gyors ellenőrzés:
 
 ```powershell
 python manage.py check
 ```
 
-- Ha új csomagokat adtál hozzá, frissítsd a `requirements.txt` fájlt:
+Ha a `requirements.txt` hiányzik, telepítsd a szükséges csomagokat, majd mentsd a környezetet:
 
 ```powershell
 pip freeze > requirements.txt
 ```
 
-- Adatbázis törlése (reset):
-
-Ha újra szeretnéd építeni az SQLite adatbázist, először győződj meg róla, hogy a fejlesztői szerver (`runserver`) nincs futtatva, illetve nincs semmilyen folyamat, amely nyitva tartja a `db.sqlite3` fájlt. A legegyszerűbb mód: zárd be a terminált vagy állítsd le a `runserver`-t Ctrl+C-vel.
-
-Windows PowerShell (biztonságosabb, létezés-ellenőrzéssel):
+Adatbázis reset (fejlesztés alatt):
 
 ```powershell
-# Állj a projekt gyökérkönyvtárába
-Set-Location -Path "$(Split-Path -Path $MyInvocation.MyCommand.Definition -Parent)" # opcionális, ha a README alapján futtatod
-
-# 1) Állítsd le a futó dev szervert (ha van):
-# - Ha a szerver ugyanabban a terminálban fut, nyomj Ctrl+C.
-# - Ha háttérben fut, zárd be vagy keresd meg és állítsd le a folyamatot.
-
-# 2) Töröld az adatbázist, ha létezik
-if (Test-Path .\db.sqlite3) {
-  Remove-Item .\db.sqlite3 -Force
-  Write-Host "db.sqlite3 törölve"
-} else {
-  Write-Host "db.sqlite3 nem található, semmi törlés" -ForegroundColor Yellow
-}
-
-# 3) Futtasd a migrációkat, hogy új adatbázis jöjjön létre
+# Windows PowerShell
+Remove-Item db.sqlite3
 python manage.py migrate
 ```
 
-Unix / Git Bash / macOS (alternatíva):
+További megjegyzések
+--------------------
 
-```bash
-# Állj a projekt gyökérkönyvtárába
-rm -f db.sqlite3
-python manage.py migrate
-```
+- A `run_dev.ps1` (ha jelen van) automatizálhatja a migrate → scrape → import → runserver lépéseket.
+- A `DOCS/PROJECT_DOCUMENTATION.md` és `DOCS/DOKUMENTACIO.md` részletesen leírják a pipeline-t, a RBAC döntéseket és a védéshez használható Q&A részt.
 
-Megjegyzés: a `db.sqlite3` törlése mindent eltávolít a helyi DB-ből (adatok, admin felhasználók stb.). Ha csak migrációs problémád van, először próbáld meg a `python manage.py migrate --plan` és `python manage.py migrate` parancsokat.
-
----
-
-1) A scraping futtatása (helyi fixtures):
-
-Az alkalmazás melletti demo/fixture HTML fájlokból (helyi `data/` könyvtár) kinyerjük a géppel olvasható JSON payload-ot, ami alapján az import parancs feltölti az adatbázist.
-
-PowerShell példa (wrapper szkriptek):
-
-```powershell
-# Wolt: kinyeri a beágyazott payload-ot és létrehozza a data/wolt.html.extracted.json fájlt
-python scripts/scrape_wolt.py
-
-# Foodora: ha mindig friss (random) adatot akarsz, add meg a --regen flag-et (szerver-oldali generátor)
-python scripts/scrape_foodora.py --regen
-
-# A generátor forrása: scripts/generate_foodora_payload.py
-# A scrapper a kibontott JSON-t a következő fájlokba írja:
-#   data/wolt.html.extracted.json
-#   data/foodora.html.extracted.json
-```
-
-2) Az import futtatása (a scraped JSON fájlokból a Django adatbázisba):
-
-```powershell
-python manage.py import_scraped
-```
-
-Ha az `import_scraped` parancs hibát jelez (például hiányzó mezők vagy migrációs problémák), ellenőrizd a következőt:
-
-- futtattad-e a `python manage.py migrate`-et a lépés 1 után;
-- a `data/*.extracted.json` fájlok léteznek-e és valid JSON-e(ket) tartalmaznak;
-- nézd meg a management parancs hibakimenetét — gyakran megmondja, melyik mező hiányzik vagy mi a probléma.
-
----
-
-Ha szeretnéd, beállítok egy rövid PowerShell helper scriptet (`run_dev.ps1`), ami ezeket a lépéseket automatikusan végrehajtja (leállítja a runserver-t az aktív terminálon, törli a DB-t, migrál, futtatja a scrappereket és az importot). Jelezd, ha elkészítsem.
-
-Ezzel a `catalog`, `compare` és `billing` modellekbe kerülnek az adatok (etterem, etel, etterem_koltseg, etterem_etel_info).
-
-Teljes pipeline (scrape + import):
-Ha elkészült a `scripts/run_pipeline.py` vagy a `run_scrape_and_import.ps1`, használhatod őket:
-
-```powershell
-# PowerShell wrapper (ha megvan)
-.\run_scrape_and_import.ps1
-# vagy Python runner
-python scripts/run_pipeline.py
-```
-
-Hasznos parancsok
-- Django rendszer ellenőrzés:
-```powershell
-python manage.py check
-```
-- Migrations létrehozása + alkalmazása:
-```powershell
-python manage.py makemigrations
-python manage.py migrate
-```
-- Admin felület:
-  - Hozz létre admin usert: `python manage.py createsuperuser`
-  - Majd nyisd: http://127.0.0.1:8000/admin/
-
-- Adatbázis dump/restore (SQLite például):
-  - Egyszerű mentés: másold a `db.sqlite3` fájlt
-  - Visszaállítás: cseréld le a `db.sqlite3` fájlt, majd futtasd `python manage.py migrate` ha szükséges
-
-Gyakori problémák és megoldások
-- Hiba: "You have X unapplied migration(s)"
-  - Futtasd: `python manage.py migrate`
-- Hiba: template/field "no such column" — ha új modellt vagy mezőt adtál hozzá és nem futtattad a migrációt
-  - Futtasd: `python manage.py migrate`
-
-- Ha a scraping nem adja be a várt mezőket, ellenőrizd a `data/*.extracted.json` fájlokat: ezek tartalmazzák a géppel olvasható payload-ot.
-
-Fejlesztési tippek
-- Ha új Python-csomagot adsz hozzá, frissítsd a `requirements.txt`-et:
-```powershell
-pip freeze > requirements.txt
-```
-
-- Ha SQL vagy egyedi migrációt írsz, mindig futtasd le a `python manage.py migrate --plan` vagy `python manage.py makemigrations` parancsot tesztelésként.
-
-Docker használat (röviden)
----------------------------------
-Hozzáadtam egy egyszerű `Dockerfile`-t és `docker-compose.yml`-t a fejlesztési környezethez. Az `entrypoint.sh` induláskor automatikusan lefuttatja a migrációkat és (ha vannak) importálja a `data/*.extracted.json` fájlokat.
-
-Indítás:
-```powershell
-docker compose build
-docker compose up
-```
-
-A konténer indításkor az `entrypoint.sh` lefut:
-- `python manage.py migrate --noinput`
-- ha talál `data/*.extracted.json` fájlokat a repo `data/` mappájában, akkor futtatja az `python manage.py import_scraped`-et
-
-Hasznos parancsok konténerben:
-```powershell
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py import_scraped
-docker compose exec web python manage.py createsuperuser
-```
-
-Részletes Docker használat
---------------------------
-1) .env fájl (ajánlott)
-Helyezd a projekt gyökerébe a `.env` fájlt a következő tartalommal (ne commitold):
-
-```text
-DATABASE_URL=postgres://foodcompare:password@db:5432/foodcompare
-DJANGO_SECRET_KEY=replace-me
-DEBUG=True
-```
-
-`foodcompare/settings.py` már olvassa a `.env`-et, így a docker-compose által biztosított `DATABASE_URL`-t is.
-
-2) Indítás és migrációk
-
-```powershell
-docker compose build
-docker compose up -d
-
-# majd (ha kell):
-docker compose logs -f
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py createsuperuser
-```
-
-3) Adatbázis reset Docker-rel (Postgres volume törlése)
-
-```powershell
-docker compose down -v   # leállítja a stack-et és törli a postgres volume-t
-docker compose up -d
-docker compose exec web python manage.py migrate
-```
-
-4) Import futtatása konténerben
-
-Ha a `data/*.extracted.json` fájlok a repo `data/` könyvtárában vannak, az entrypoint automatikusan megpróbálja futtatni az `import_scraped` parancsot az indításkor. Manuálisan is futtathatod:
-
-```powershell
-docker compose exec web python manage.py import_scraped
-```
-
-5) Ha hibát látsz
-
-- Ellenőrizd a konténer logokat: `docker compose logs web`
-- Győződj meg róla, hogy a `.env` és a `DATABASE_URL` helyes
-- Ha a migrációk miatt van gond, futtasd `docker compose exec web python manage.py migrate --verbosity 2` a részletesebb kimenetért
-
-Ez az útmutató elég részletesen lefedi a Dockeres fejlesztési munkafolyamat tipikus lépéseit. Ha szeretnéd, beállítok egy `Makefile`-t vagy PowerShell scriptet, amely automatizálja a gyakori lépéseket (`docker-compose build && up && migrate`).
-
-
-További help
-- Ha szeretnéd, készítek:
-  - Egy `docker-compose.yml` fájlt fejlesztéshez és adat-szinkronizációhoz
-  - Automatikus teszteket a `import_scraped` parancshoz
-  - Egy scriptet, ami a meglévő `EtteremKoltseg` sorokból automatikusan áthelyez bizonyos adatokat `etel` mezőbe a szabályaid szerint
-
-————————————————————————
-Ha szeretnéd, most létrehozok még:
-- Egy `requirements.txt` frissítést (pip freeze alapján),
-- Vagy felveszem a README-be még részletesebb platform-specifikus példákat a scraping futtatására.
-
-Jelöld meg, melyiket csináljam következőként.
+Ha szeretnéd, hozzáadok még egy rövid szakaszt a CI beállításáról (GitHub Actions) vagy létrehozok egy `run_pipeline.ps1` scriptet, ami egy parancsból végigviszi a teljes folyamatot (scrape → import → sanity-check). Jelezd, melyiket csináljam következőnek.
+``` 
