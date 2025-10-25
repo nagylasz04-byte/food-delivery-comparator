@@ -3,23 +3,20 @@
     {
       "id": 1,
       "nev": "Pizza Bella",
-      "cim": "Budapest, VI. kerület, Andrássy út 12.",
-      "platform": "foodora",
-      "platform_url": "https://foodora.example/restaurant/1"
+      "cim": "Budapest, VI. kerület",
+      "platform": "Foodora"
     },
     {
       "id": 2,
       "nev": "Burger Mester",
-      "cim": "Budapest, VII. kerület, Rákóczi út 33.",
-      "platform": "foodora",
-      "platform_url": "https://foodora.example/restaurant/2"
+      "cim": "Budapest, VII. kerület",
+      "platform": "Foodora"
     },
     {
       "id": 3,
       "nev": "Sushi Go",
-      "cim": "Budapest, XIII. kerület, Váci út 8.",
-      "platform": "foodora",
-      "platform_url": "https://foodora.example/restaurant/3"
+      "cim": "Budapest, XIII. kerület",
+      "platform": "Foodora"
     }
   ],
   "etterem_koltseg": [
@@ -27,55 +24,55 @@
       "id": 1,
       "etterem_id": 1,
       "koltseg_tipus": "szallitas",
-      "osszeg": 712
+      "osszeg": 713
     },
     {
       "id": 2,
       "etterem_id": 1,
       "koltseg_tipus": "csomagolas",
-      "osszeg": 170
+      "osszeg": 75
     },
     {
       "id": 3,
       "etterem_id": 1,
       "koltseg_tipus": "borravalo",
-      "osszeg": 40
+      "osszeg": 573
     },
     {
       "id": 4,
       "etterem_id": 2,
       "koltseg_tipus": "szallitas",
-      "osszeg": 1198
+      "osszeg": 1180
     },
     {
       "id": 5,
       "etterem_id": 2,
       "koltseg_tipus": "csomagolas",
-      "osszeg": 374
+      "osszeg": 323
     },
     {
       "id": 6,
       "etterem_id": 2,
       "koltseg_tipus": "borravalo",
-      "osszeg": 8
+      "osszeg": 443
     },
     {
       "id": 7,
       "etterem_id": 3,
       "koltseg_tipus": "szallitas",
-      "osszeg": 667
+      "osszeg": 958
     },
     {
       "id": 8,
       "etterem_id": 3,
       "koltseg_tipus": "csomagolas",
-      "osszeg": 24
+      "osszeg": 287
     },
     {
       "id": 9,
       "etterem_id": 3,
       "koltseg_tipus": "borravalo",
-      "osszeg": 501
+      "osszeg": 46
     }
   ],
   "etel": [
@@ -84,35 +81,35 @@
       "nev": "Margherita pizza",
       "leiras": "Paradicsom, mozzarella, bazsalikom",
       "kategoria": "pizza",
-      "kep_url": "https://picsum.photos/seed/pizza/400"
+      "kep_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTH6SShASkcC_o-T2RZ6D3FqB0boGFmlpn2OIGC7OWUt3gDjA_o0OsVrveSDj8AonNnSBIgRqU724LKyMqOkFjtwUV2XX246g2r5rdB5sw"
     },
     {
       "id": 2,
       "nev": "Dupla sajtburger",
       "leiras": "Marhahús, sajt, savanyú uborka",
       "kategoria": "burger",
-      "kep_url": "https://picsum.photos/seed/burger/400"
+      "kep_url": "https://s7d1.scene7.com/is/image/mcdonalds/ADIG_202_DSajtburger_Termekkep_832x822:nutrition-calculator-tile?wid=822&hei=822&dpr=off"
     },
     {
       "id": 3,
       "nev": "Csirke ramen",
       "leiras": "Csirke, tészta, tojás",
       "kategoria": "leves",
-      "kep_url": "https://picsum.photos/seed/ramen/400"
+      "kep_url": "https://marieclaire.hu/uploads/2023/03/ramenv2.png"
     },
     {
       "id": 4,
       "nev": "Tonhal maki",
       "leiras": "Tonhal, rizs, nori",
       "kategoria": "sushi",
-      "kep_url": "https://picsum.photos/seed/sushi/400"
+      "kep_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcYfn1vRqe7HHBKvNmTINd-vkow7yBwkh2GQ&s"
     },
     {
       "id": 5,
       "nev": "Vega bowl",
       "leiras": "Quinoa, zöldségek, tahini",
       "kategoria": "vega",
-      "kep_url": "https://picsum.photos/seed/bowl/400"
+      "kep_url": "https://palanta-salata.okospincer.com/admin/wp-content/uploads/sites/12/2020/03/buddha_bowl_vega-1.jpg"
     }
   ],
   "etterem_etel_info": [
@@ -121,19 +118,19 @@
       "etel_id": 1,
       "etterem_id": 1,
       "platform": "foodora",
-      "ar": 3655,
-      "szallitas_ido": "30–45 perc",
-      "felhaszn_ertekeles": 4.8,
-      "promocio": 0
+      "ar": 4461,
+      "szallitas_ido": "40–55 perc",
+      "felhaszn_ertekeles": 4.1,
+      "promocio": 500
     },
     {
       "id": "2-2",
       "etel_id": 2,
       "etterem_id": 2,
       "platform": "foodora",
-      "ar": 2016,
-      "szallitas_ido": "30–45 perc",
-      "felhaszn_ertekeles": 4.5,
+      "ar": 1976,
+      "szallitas_ido": "40–55 perc",
+      "felhaszn_ertekeles": 3.9,
       "promocio": 500
     },
     {
@@ -141,19 +138,19 @@
       "etel_id": 3,
       "etterem_id": 3,
       "platform": "foodora",
-      "ar": 3936,
+      "ar": 3643,
       "szallitas_ido": "25–35 perc",
-      "felhaszn_ertekeles": 4.7,
-      "promocio": 500
+      "felhaszn_ertekeles": 4.6,
+      "promocio": 0
     },
     {
       "id": "1-4",
       "etel_id": 4,
       "etterem_id": 1,
       "platform": "foodora",
-      "ar": 4883,
-      "szallitas_ido": "30–45 perc",
-      "felhaszn_ertekeles": 4.2,
+      "ar": 3445,
+      "szallitas_ido": "25–35 perc",
+      "felhaszn_ertekeles": 4,
       "promocio": 0
     },
     {
@@ -161,10 +158,10 @@
       "etel_id": 5,
       "etterem_id": 2,
       "platform": "foodora",
-      "ar": 3733,
-      "szallitas_ido": "30–45 perc",
-      "felhaszn_ertekeles": 4.2,
-      "promocio": 0
+      "ar": 3578,
+      "szallitas_ido": "25–35 perc",
+      "felhaszn_ertekeles": 4.9,
+      "promocio": 500
     }
   ]
 }
