@@ -106,9 +106,6 @@
             {% endif %}
           </td>
           <td style="padding:.8rem; text-align:right;">
-            {# Prefer linking to a local scraped HTML copy (if available) via the
-               `scraped_or_redirect` view which will serve data/<platform>.html if
-               present, otherwise redirect to the recorded platform URL. #}
             <a href="{% url 'scraped_or_redirect' o.etterem.id %}" target="_blank" rel="noopener" class="btn" style="background:#12a54d; color:#fff;">Irány a bolt »</a>
           </td>
         </tr>
