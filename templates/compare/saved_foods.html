@@ -12,7 +12,7 @@
         </div>
         <div style="display:flex; gap:.5rem;">
           <a class="btn" href="{% url 'compare:offers_for_etel' m.etel.id %}">Ár keresés</a>
-          <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:toggle_save' m.etel.id %}">Eltávolítás</a>
+          <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:toggle_save' m.etel.id %}?next={% url 'compare:saved_foods' %}">Eltávolítás</a>
         </div>
       </li>
     {% endfor %}

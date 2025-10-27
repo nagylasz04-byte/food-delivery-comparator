@@ -126,6 +126,22 @@ def toggle_save(request, etel_id: int):
         existing.delete()
     else:
         Mentes.objects.create(felhasznalo=request.user, etel=etel)
+    # If the caller provided an explicit 'next' param, prefer it.
+    next_url = request.GET.get("next")
+    if next_url:
+        return redirect(next_url)
+
+    # If the referer was the saved-foods page, return there so the user stays
+    # on /mentett-etelek/ after removing an item.
+    try:
+        saved_abs = request.build_absolute_uri(reverse('compare:saved_foods'))
+    except Exception:
+        saved_abs = None
+    referer = request.META.get('HTTP_REFERER')
+    if referer and saved_abs and referer.startswith(saved_abs):
+        return redirect('compare:saved_foods')
+
+    # Default: go back to the offers page for this item.
     return redirect("compare:offers_for_etel", etel_id=etel.id)
 
 
