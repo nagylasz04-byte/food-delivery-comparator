@@ -20,6 +20,7 @@ Előkészületek
 
 ```powershell
 python -m venv .venv
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 .\.venv\Scripts\Activate.ps1
 ```
 
@@ -60,9 +61,10 @@ Scrape — Foodora (headless / a megjelenített adatokból):
 python -m pip install playwright
 python -m playwright install
 
-python .\scripts\scrape_foodora_browser.py
+C
 # kimenet: data/foodora.html.extracted.json
 ```
+python .\scripts\scrape_foodora_browser.py
 
 Scrape — Foodora (fallback / szerver-oldali generátor):
 

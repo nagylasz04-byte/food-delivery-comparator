@@ -12,7 +12,7 @@ from billing.models import EtteremKoltseg
 
 # ha már van nálad ez a mixin, maradhat
 try:
-    from foodcompare.mixins import LoginRequired, WritePermissionRequired
+    from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
 except Exception:  # fejlesztői kényelemre
     class LoginRequired: ...
     class WritePermissionRequired: ...
@@ -142,7 +142,7 @@ class SavedFoodsView(ListView):
 
 
 # ---- (a korábbi CRUD/Lista nézeteid maradhatnak változatlanul) ----
-class InfoListView(ListView):
+class InfoListView(StaffRequired, ListView):
     model = EtteremEtelInfo
     template_name = "compare/info_list.html"
     paginate_by = 20

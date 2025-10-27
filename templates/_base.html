@@ -18,23 +18,37 @@
 <body>
   <div class="topbar">
     <div class="links">
-      <a href="{% url 'users:felhasznalo_list' %}">Felhasználók</a>
-      <a href="{% url 'users:felhjog_list' %}">Felhasználói Jogultságok</a>
-      <a href="{% url 'users:jog_list' %}">Jogosultságok</a>
-      <a href="{% url 'billing:koltseg_list' %}">Rejtett költségek</a>
-      <a href="{% url 'catalog:etel_list' %}">Ételek</a>
-      <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
-      <a href="{% url 'compare:info_list' %}">Étterem-Étel Információk</a>
-      <a href="{% url 'catalog:etterem_list' %}">Éttermek</a>
+      {% if user.is_staff %}
+        <a href="{% url 'users:felhasznalo_list' %}">Felhasználók</a>
+        <a href="{% url 'users:felhjog_list' %}">Felhasználói Jogultságok</a>
+        <a href="{% url 'users:jog_list' %}">Jogosultságok</a>
+        <a href="{% url 'billing:koltseg_list' %}">Rejtett költségek</a>
+        <a href="{% url 'catalog:etel_list' %}">Ételek</a>
+        <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
+        <a href="{% url 'compare:info_list' %}">Étterem-Étel Információk</a>
+        <a href="{% url 'catalog:etterem_list' %}">Éttermek</a>
+      {% else %}
+        {# non-staff minimal nav: show saved foods only when logged in (matches screenshot) #}
+        {% if user.is_authenticated %}
+          <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
+        {% endif %}
+      {% endif %}
     </div>
     <div style="display:flex;gap:12px;align-items:center">
       <a href="{% url 'catalog:kereses' %}">Keresés</a>
+      {# Show registration only to anonymous users #}
+      {% if not user.is_authenticated %}
+        <a href="{% url 'users:register' %}">Regisztráció</a>
+      {% endif %}
       {% if user.is_authenticated %}
+        <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
         <a href="{% url 'logout' %}">Kijelentkezés</a>
       {% else %}
         <a href="{% url 'login' %}">Bejelentkezés</a>
       {% endif %}
-      <div class="homebtn"><a href="{% url 'home' %}">Vissza a főoldalra</a></div>
+      {% if user.is_staff %}
+        <div class="homebtn"><a href="{% url 'home' %}">Vissza a főoldalra</a></div>
+      {% endif %}
     </div>
   </div>
 

@@ -4,13 +4,13 @@ from django.views.generic import (
 )
 from django.db.models import Q, Min, Count, Avg
 
-from foodcompare.mixins import LoginRequired, WritePermissionRequired
+from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
 from .models import Etterem, Etel
 from compare.models import Mentes
 
 
 # ---------- ÉTTEREM: teljes CRUD ----------
-class EtteremListView(ListView):
+class EtteremListView(StaffRequired, ListView):
     model = Etterem
     template_name = "catalog/etterem_list.html"
 
@@ -44,7 +44,7 @@ class EtteremDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
 
 
 # ---------- ÉTEL: lista + részlet + (staff) CRUD ----------
-class EtelListView(ListView):
+class EtelListView(StaffRequired, ListView):
     model = Etel
     paginate_by = 20
     template_name = "catalog/etel_list.html"

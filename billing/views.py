@@ -1,9 +1,9 @@
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from foodcompare.mixins import LoginRequired, WritePermissionRequired
+from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
 from .models import EtteremKoltseg
 
-class KoltsegListView(ListView):
+class KoltsegListView(StaffRequired, ListView):
     model = EtteremKoltseg
     paginate_by = 20
     template_name = "billing/koltseg_list.html"

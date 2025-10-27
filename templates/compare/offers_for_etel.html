@@ -45,13 +45,7 @@
   </div>
 </div>
 
-<!-- Fülek fejléc (jelenleg csak az első aktív) -->
-<div style="display:flex; gap:.5rem; margin-bottom:.7rem;">
-  <a href="#" class="btn" style="background:#2b61d1; color:#fff;">Platformok és árak</a>
-  <a href="#" class="btn" style="opacity:.5; pointer-events:none;">Termékleírás</a>
-  <a href="#" class="btn" style="opacity:.5; pointer-events:none;">Vélemények</a>
-  <a href="#" class="btn" style="opacity:.5; pointer-events:none;">Kérdezz</a>
-</div>
+<!-- Tabs removed per UX request -->
 
 <!-- Platformok és árak tábla -->
 <div style="border:1px solid #eee; border-radius:12px; overflow:hidden;">
@@ -70,12 +64,9 @@
         {% with koltsegek=koltsegek_by_etterem|dict_get:o.etterem_id %}
         <tr style="border-bottom:1px solid #f2f2f2;">
           <td style="padding:.8rem;">
-            <div style="display:flex; align-items:center; gap:.6rem;">
-              <img src="{{ o.etterem.get_platform_logo_url }}" alt="{{ o.etterem.get_platform_display }}" style="height:26px;">
-              <div>
-                <div style="font-weight:600;">{{ o.etterem.get_platform_display }}</div>
-                <div style="font-size:12px; color:#666;">{{ o.etterem.nev }}</div>
-              </div>
+            <div>
+              <div style="font-weight:600;">{{ o.etterem.get_platform_display }}</div>
+              <div style="font-size:12px; color:#666;">{{ o.etterem.nev }}</div>
             </div>
           </td>
           <td style="padding:.8rem;">{{ etel.nev }}</td>
@@ -115,8 +106,10 @@
             {% endif %}
           </td>
           <td style="padding:.8rem; text-align:right;">
-            <a href="{{ o.etterem.get_platform_url }}" target="_blank" rel="noopener"
-               class="btn" style="background:#12a54d; color:#fff;">Irány a bolt »</a>
+            {# Prefer linking to a local scraped HTML copy (if available) via the
+               `scraped_or_redirect` view which will serve data/<platform>.html if
+               present, otherwise redirect to the recorded platform URL. #}
+            <a href="{% url 'scraped_or_redirect' o.etterem.id %}" target="_blank" rel="noopener" class="btn" style="background:#12a54d; color:#fff;">Irány a bolt »</a>
           </td>
         </tr>
         {% endwith %}

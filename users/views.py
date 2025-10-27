@@ -1,15 +1,15 @@
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
-from foodcompare.mixins import LoginRequired, WritePermissionRequired
+from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
 from .models import Felhasznalo, Jog, FelhJog
 from .forms import FelhasznaloCreationForm, FelhasznaloUpdateForm
 
 
 # FELHASZNALO CRUD (note: user creation via UI may require special handling for password)
-class FelhasznaloListView(ListView):
-	model = Felhasznalo
-	template_name = "users/felhasznalo_list.html"
+class FelhasznaloListView(StaffRequired, ListView):
+    model = Felhasznalo
+    template_name = "users/felhasznalo_list.html"
 
 
 class FelhasznaloDetailView(DetailView):
@@ -56,7 +56,7 @@ class FelhasznaloDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
 
 
 # JOG CRUD
-class JogListView(ListView):
+class JogListView(StaffRequired, ListView):
 	model = Jog
 	template_name = "users/jog_list.html"
 
@@ -90,7 +90,7 @@ class JogDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
 
 
 # FELHJOG CRUD
-class FelhJogListView(ListView):
+class FelhJogListView(StaffRequired, ListView):
 	model = FelhJog
 	template_name = "users/felhjog_list.html"
 

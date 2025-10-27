@@ -11,7 +11,7 @@
           {% if m.etel.kategoria %}<span style="color:#666;"> • {{ m.etel.kategoria }}</span>{% endif %}
         </div>
         <div style="display:flex; gap:.5rem;">
-          <a class="btn" href="{% url 'compare:offers_for_etel' m.etel.id %}">Összevetés</a>
+          <a class="btn" href="{% url 'compare:offers_for_etel' m.etel.id %}">Ár keresés</a>
           <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:toggle_save' m.etel.id %}">Eltávolítás</a>
         </div>
       </li>

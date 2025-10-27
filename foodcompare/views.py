@@ -3,6 +3,10 @@ from django.shortcuts import render
 from django.urls import get_resolver
 from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect
+from django.http import HttpResponse, Http404
+from django.conf import settings
+from pathlib import Path
+from catalog.models import Etterem
 
 
 class SiteIndexView(View):
@@ -15,6 +19,11 @@ class SiteIndexView(View):
     template_name = "site_index.html"
 
     def get(self, request):
+        # If the visitor is not a staff/admin user, send them straight to the
+        # search page instead of showing the site index.
+        if not (request.user.is_authenticated and request.user.is_staff):
+            return redirect("catalog:kereses")
+
         resolver = get_resolver()
         patterns = []
 
@@ -64,3 +73,27 @@ def simple_logout(request):
     """Log out the user and redirect to home. Accepts GET so topbar links work."""
     auth_logout(request)
     return redirect("home")
+
+
+def scraped_or_redirect(request, etterem_id: int):
+    """Serve the local scraped HTML for the restaurant's platform if present.
+
+    If the corresponding file (data/<platform>.html) exists in the project,
+    return it as HTML. Otherwise redirect to the restaurant's recorded
+    `platform_url` or fallback to `get_platform_url()`.
+    """
+    try:
+        etterem = Etterem.objects.get(pk=etterem_id)
+    except Etterem.DoesNotExist:
+        raise Http404("Étterem nem található")
+
+    # prefer a scraped HTML file in project_root/data/<platform>.html
+    data_dir = Path(settings.BASE_DIR) / "data"
+    candidate = data_dir / f"{etterem.platform}.html"
+    if candidate.exists():
+        return HttpResponse(candidate.read_text(encoding='utf-8'), content_type='text/html')
+
+    # fallback: prefer stored platform_url, otherwise get_platform_url()
+    if etterem.platform_url:
+        return redirect(etterem.platform_url)
+    return redirect(etterem.get_platform_url())
