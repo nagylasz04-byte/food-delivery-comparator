@@ -126,8 +126,8 @@ def toggle_save(request, etel_id: int):
         existing.delete()
     else:
         Mentes.objects.create(felhasznalo=request.user, etel=etel)
-    # If the caller provided an explicit 'next' param, prefer it.
-    next_url = request.GET.get("next")
+    # Prefer an explicit 'next' parameter passed via POST (form) or GET (querystring).
+    next_url = request.POST.get("next") or request.GET.get("next")
     if next_url:
         return redirect(next_url)
 

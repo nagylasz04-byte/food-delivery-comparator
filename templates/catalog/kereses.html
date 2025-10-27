@@ -67,6 +67,7 @@
         {% if user.is_authenticated %}
           <form method="post" action="{% url 'compare:toggle_save' etel.id %}" style="display:inline-block; margin-left:.5rem;">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
             {% if etel.pk in saved_etel_ids %}
               <button class="btn" style="background:#ccc;">Eltávolít</button>
             {% else %}
