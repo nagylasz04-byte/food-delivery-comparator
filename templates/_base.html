@@ -27,11 +27,6 @@
         <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
         <a href="{% url 'compare:info_list' %}">Étterem-Étel Információk</a>
         <a href="{% url 'catalog:etterem_list' %}">Éttermek</a>
-      {% else %}
-        {# non-staff minimal nav: show saved foods only when logged in (matches screenshot) #}
-        {% if user.is_authenticated %}
-          <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>
-        {% endif %}
       {% endif %}
     </div>
     <div style="display:flex;gap:12px;align-items:center">
