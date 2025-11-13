@@ -20,8 +20,7 @@
     <div class="links">
       {% if user.is_staff %}
         <a href="{% url 'users:felhasznalo_list' %}">Felhasználók</a>
-        <a href="{% url 'users:felhjog_list' %}">Felhasználói Jogultságok</a>
-        <a href="{% url 'users:jog_list' %}">Jogosultságok</a>
+        {# Jog / FelhJog admin pages removed #}
         <a href="{% url 'billing:koltseg_list' %}">Rejtett költségek</a>
         <a href="{% url 'catalog:etel_list' %}">Ételek</a>
         <a href="{% url 'compare:saved_foods' %}">Mentett ételek</a>

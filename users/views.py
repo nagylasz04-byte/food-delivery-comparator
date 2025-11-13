@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
-from .models import Felhasznalo, Jog, FelhJog
+from .models import Felhasznalo
 from .forms import FelhasznaloCreationForm, FelhasznaloUpdateForm
 
 
@@ -56,71 +56,7 @@ class FelhasznaloDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
 
 
 # JOG CRUD
-class JogListView(StaffRequired, ListView):
-	model = Jog
-	template_name = "users/jog_list.html"
-
-
-class JogDetailView(DetailView):
-	model = Jog
-	template_name = "users/jog_detail.html"
-
-
-class JogCreateView(LoginRequired, WritePermissionRequired, CreateView):
-	model = Jog
-	fields = ["nev"]
-	permission_required = "users.add_jog"
-	template_name = "users/jog_form.html"
-	success_url = reverse_lazy("users:jog_list")
-
-
-class JogUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
-	model = Jog
-	fields = ["nev"]
-	permission_required = "users.change_jog"
-	template_name = "users/jog_form.html"
-	success_url = reverse_lazy("users:jog_list")
-
-
-class JogDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
-	model = Jog
-	permission_required = "users.delete_jog"
-	template_name = "compare/confirm_delete.html"
-	success_url = reverse_lazy("users:jog_list")
-
-
-# FELHJOG CRUD
-class FelhJogListView(StaffRequired, ListView):
-	model = FelhJog
-	template_name = "users/felhjog_list.html"
-
-
-class FelhJogDetailView(DetailView):
-	model = FelhJog
-	template_name = "users/felhjog_detail.html"
-
-
-class FelhJogCreateView(LoginRequired, WritePermissionRequired, CreateView):
-	model = FelhJog
-	fields = ["felhasznalo", "jog"]
-	permission_required = "users.add_felhjog"
-	template_name = "users/felhjog_form.html"
-	success_url = reverse_lazy("users:felhjog_list")
-
-
-class FelhJogUpdateView(LoginRequired, WritePermissionRequired, UpdateView):
-	model = FelhJog
-	fields = ["felhasznalo", "jog"]
-	permission_required = "users.change_felhjog"
-	template_name = "users/felhjog_form.html"
-	success_url = reverse_lazy("users:felhjog_list")
-
-
-class FelhJogDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
-	model = FelhJog
-	permission_required = "users.delete_felhjog"
-	template_name = "compare/confirm_delete.html"
-	success_url = reverse_lazy("users:felhjog_list")
+# NOTE: Jog and FelhJog models removed; corresponding CRUD views were deleted.
 
 
 # Create your views here.
