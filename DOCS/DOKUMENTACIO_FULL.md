@@ -53,21 +53,112 @@ A rendszer két fő adatforrást használ: statikus HTML fájlokba épített dem
 4. Adatmodell és adatbázis
 -------------------------
 
-Itt röviden összefoglaljuk a fontos modelleket és a közöttük lévő kapcsolatok logikáját. A részletes kód a `catalog/models.py`, `compare/models.py`, `billing/models.py` fájlokban található.
+Ebben a szakaszban részletes, táblázatos formában felsoroljuk a projekthez tartozó adatbázis-táblákat, oszlopaikat és a köztük lévő kapcsolódásokat. A leírás a projekt modelleiből származó mezőneveken és típusokon alapul — a formai elrendezés a dokumentumban található minta szerint készült.
 
-Fő modellek (sorrend és logika):
-- Etterem (étterem): alap adatok (id, név, cím, platform). Primer kulcs: id.
-- Etel (étel): id, név, leírás, kategória, kép URL.
-- EtteremKoltseg (rejtett költség): minden egyes étteremhez tartozó költség-típusok (szállítás, csomagolás, borravaló). Kapcsolat: N:1 Etterem.
-- EtteremEtelInfo (ajánlat): kapcsolja össze az ételeket és éttermeket, tartalmaz árat, promóciót, szállítási időt, értékelést, és referenciákat (_food, _restaurant, _costs a JSON importból). Ez a tábla használatos a compare funkcióhoz.
+1. FELHASZNÁLÓ (`users.Felhasznalo`)
+ID (PK) — automatikus primer kulcs (Django `id`)
 
-Kapcsolatok (példák):
-- Egy `Etterem` több `EtteremEtelInfo`-val rendelkezhet (1:N).
-- Egy `Etel` több `EtteremEtelInfo`-hoz kapcsolódhat (1:N).
-- `EtteremKoltseg` 1:N kapcsolatban van az éttermekkel.
+Név (`nev`) — CharField, opcionális (felhasználó teljes neve)
 
-Adat-integritás és idempotencia az importnál:
-- Az `import_scraped` management command úgy működik, hogy beazonosítja az entitásokat külső azonosítók alapján (pl. `id` vagy egyedi slug), és CREATE-or-UPDATE logikát alkalmaz. Ez biztosítja, hogy a többszöri futtatás nem hoz létre duplikátumokat.
+Felhasználónév (`username`) — az AbstractUser része
+
+Jelszó (`password`) — jelszó hash (AbstractUser mező)
+
+Email (`email`) — az AbstractUser része
+
+Kedvenc étterem (`kedvenc_etterem_id`) — FK → `catalog.Etterem.id` (nullable, on_delete=SET_NULL)
+
+Megjegyzés: a projekthez egy egyedi user modell (`Felhasznalo`) tartozik, amely az AbstractUser-t bővíti.
+
+2. ÉTEL (`catalog.Etel`)
+ID (PK) — automatikus
+
+Név (`nev`) — CharField, kötelező
+
+Leírás (`leiras`) — TextField, opcionális
+
+Kategória (`kategoria`) — CharField, opcionális
+
+Kép_url (`kep_url`) — URLField, opcionális
+
+3. ÉTTEREM (`catalog.Etterem`)
+ID (PK) — automatikus
+
+Név (`nev`) — CharField, kötelező
+
+Cím (`cim`) — CharField, opcionális
+
+Platform (`platform`) — CharField, choices (például `wolt`, `foodora`, `bolt`, `egyeb`), default `egyeb`
+
+Platform_logo_url (`platform_logo_url`) — URLField, opcionális (frontend logó URL)
+
+Platform_url (`platform_url`) — URLField, opcionális (külső platform link)
+
+4. ÉTTEREM–ÉTEL INFORMÁCIÓ (`compare.EtteremEtelInfo`)
+ID (PK) — automatikus
+
+ÉTEL_ID (`etel_id`) — FK → `catalog.Etel.id` (on_delete=CASCADE)
+
+ÉTTEREM_ID (`etterem_id`) — FK → `catalog.Etterem.id` (on_delete=CASCADE)
+
+Platform (`platform`) — CharField, choices (megegyezik `catalog.PLATFORMOK`), default `egyeb`
+
+Ár (`ar`) — DecimalField (HUF), max_digits és decimal_places a modellen szerint
+
+Szállítási_idő (`szallitas_ido`) — DurationField (nullable)
+
+Felhaszn_értékelések (`felhaszn_ertekelesek`) — DecimalField (átlag, opcionális)
+
+Promóció (`promocio`) — CharField, opcionális
+
+Indexek / constraint-ek:
+- `unique_together` on (`etel`, `etterem`, `platform`) — egy étel-étterem-platform kombináció egyedi
+- indexek az `etel`, `etterem` és `platform` mezőkön a gyorsabb lekérdezésért
+
+5. ÉTTEREM_KÖLTSÉG (`billing.EtteremKoltseg`)
+ID (PK) — automatikus
+
+ÉTTEREM_ID (`etterem_id`) — FK → `catalog.Etterem.id` (nullable). Ha null, akkor a költség platform-szintű.
+
+ÉTEL_ID (`etel_id`) — FK → `catalog.Etel.id` (nullable). Opcionálisan egy költség konkrét ételhez is kapcsolható.
+
+Platform (`platform`) — CharField, opcionális; használható platform-szintű költség hozzárendelésre
+
+Költség_típus (`koltseg_tipus`) — CharField, choices (pl. `szallitas`, `csomagolas`, `borravalo`, `egyeb`)
+
+Összeg (`osszeg`) — DecimalField (HUF)
+
+Megjegyzés: a költségek rugalmasan kapcsolódhatnak egy étteremhez, egy adott ételhez vagy egy platformhoz. Az import és az ajánlatkalkuláció ezeket összevonva számolja az összesített költséget.
+
+6. MENTÉS (`compare.Mentes`)
+ID (PK) — automatikus
+
+FELH_ID (`felhasznalo_id`) — FK → `users.Felhasznalo.id` (on_delete=CASCADE)
+
+ÉTEL_ID (`etel_id`) — FK → `catalog.Etel.id` (on_delete=CASCADE)
+
+Létrehozva (`letrehozva`) — DateTimeField (auto_now_add=True)
+
+Constraint:
+- `unique_together` on (`felhasznalo`, `etel`) — egy felhasználó egyszer mentheti ugyanazt az ételt
+
+
+Egyéb fontos entitás/konstans
+- `catalog.PLATFORMOK`: a platform választási lista (pl. `wolt`, `foodora`, `bolt`, `egyeb`) — használatos `Etterem.platform` és `EtteremEtelInfo.platform` mezőknél.
+- `billing.KOLTSEG_TIPUSOK`: költségtípusok felsorolása (`szallitas`, `csomagolas`, `borravalo`, `egyeb`) — használatos `EtteremKoltseg.koltseg_tipus`-nál.
+
+Kapcsolatok összefoglalva (ER-szerű leírás):
+- `users.Felhasznalo` 1:N → `compare.Mentes` (egy felhasználónak több mentése lehet)
+- `catalog.Etel` 1:N → `compare.EtteremEtelInfo` (egy étel több ajánlathoz kapcsolódhat)
+- `catalog.Etterem` 1:N → `compare.EtteremEtelInfo` (egy étterem több étel-ajánlattal rendelkezhet)
+- `catalog.Etterem` 1:N → `billing.EtteremKoltseg` (étteremhez kötődő költségek)
+- `billing.EtteremKoltseg` lehet `etterem`-hez vagy `platform`-hoz kötve; `etel` mező opcionális (költség specifikus ételhez)
+
+Import idempotencia és egyedi mezők:
+- `EtteremEtelInfo`-nál az `unique_together` és indexek segítenek az importnál, hogy egy adott `etel+etterem+platform` kombináció ne legyen duplikálva.
+- `Mentes` egyedi kombinációja (`felhasznalo` + `etel`) megakadályozza az ismételt mentéseket.
+
+Ez a rész a modellekből automatikusan vezethető le; ha szeretnél, létrehozok egyszerű ER-diagramot (SVG/PNG) is ebből a struktúrából.
 
 
 5. Scraper-ek és adatextrakció
