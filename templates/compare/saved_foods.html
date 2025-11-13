@@ -6,9 +6,16 @@
   <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:.6rem;">
     {% for m in saved %}
       <li style="border:1px solid #eee; border-radius:10px; padding:.7rem 1rem; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <b>{{ m.etel.nev }}</b>
-          {% if m.etel.kategoria %}<span style="color:#666;"> • {{ m.etel.kategoria }}</span>{% endif %}
+        <div style="display:flex; align-items:center; gap:.8rem;">
+          {% if m.etel.kep_url %}
+            <img src="{{ m.etel.kep_url }}" alt="{{ m.etel.nev }}" style="width:64px; height:64px; object-fit:cover; border-radius:8px; background:#fafafa;">
+          {% else %}
+            <div style="width:64px; height:64px; display:flex; align-items:center; justify-content:center; background:#fafafa; color:#999; border-radius:8px;">nincs kép</div>
+          {% endif %}
+          <div>
+            <b>{{ m.etel.nev }}</b>
+            {% if m.etel.kategoria %}<span style="color:#666;"> • {{ m.etel.kategoria }}</span>{% endif %}
+          </div>
         </div>
         <div style="display:flex; gap:.5rem;">
           <a class="btn" href="{% url 'compare:offers_for_etel' m.etel.id %}">Ár keresés</a>
