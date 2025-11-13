@@ -8,6 +8,7 @@ urlpatterns = [
     path("termek/<int:etel_id>/", views.OffersForEtelView.as_view(), name="offers_for_etel"),
     path("termek/<int:etel_id>/mentes-toggle/", views.toggle_save, name="toggle_save"),
     path("mentett-etelek/", views.SavedFoodsView.as_view(), name="saved_foods"),
+    path("mentes/<int:pk>/torles/", views.MentesDeleteView.as_view(), name="mentes_delete"),
 
     # MEGLÉVŐ útvonalak (maradnak)
     path("info/", views.InfoListView.as_view(), name="info_list"),

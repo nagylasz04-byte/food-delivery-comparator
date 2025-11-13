@@ -157,6 +157,20 @@ class SavedFoodsView(ListView):
         return qs.filter(felhasznalo=self.request.user).order_by("-letrehozva")
 
 
+class MentesDeleteView(LoginRequired, DeleteView):
+    """Allow owners to delete their own Mentes; staff may delete any record."""
+    model = Mentes
+    template_name = "compare/confirm_delete.html"
+    success_url = reverse_lazy("compare:saved_foods")
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # staff can delete any Mentes; normal users only their own
+        if self.request.user.is_staff:
+            return qs
+        return qs.filter(felhasznalo=self.request.user)
+
+
 # ---- (a korábbi CRUD/Lista nézeteid maradhatnak változatlanul) ----
 class InfoListView(StaffRequired, ListView):
     model = EtteremEtelInfo

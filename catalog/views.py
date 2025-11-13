@@ -2,7 +2,8 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
-from django.db.models import Q, Min, Count, Avg
+from django.db.models import Q, Min, Count, Avg, F, Value, DecimalField, Case, When, Subquery, OuterRef, Sum
+from django.db.models.functions import Coalesce
 
 from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
 from .models import Etterem, Etel
@@ -89,13 +90,59 @@ class EtelSearchView(ListView):
         sort = self.request.GET.get("sort", "alap")
 
         # VISSZAIRÁNYÚ KAPCSOLAT NEVE AZ ÉTEL -> EtteremEtelInfo FELÉ:
-        # a te sémádban ez 'etterem_info' (ezt írja a hibaüzenet is)
         REL = "etterem_info"
+
+        # Compute per-etel the minimal "visible" offer price (ar + cost_sum)
+        # Use Subquery on EtteremEtelInfo filtered by etel=OuterRef('pk') and
+        # annotate each offer with restaurant/platform cost sums similar to
+        # the product page logic, then select the smallest total_price.
+        from compare.models import EtteremEtelInfo  # local import to build subquery
+
+        from billing.models import EtteremKoltseg
+
+        offers_subq = (
+            EtteremEtelInfo.objects
+            .filter(etel=OuterRef('pk'))
+            .annotate(
+                _rest_sum=Coalesce(
+                    Subquery(
+                        EtteremKoltseg.objects
+                        .filter(etterem=OuterRef('etterem_id'))
+                        .values('etterem')
+                        .annotate(s=Sum('osszeg'))
+                        .values('s')
+                    ),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+                _plat_sum=Coalesce(
+                    Subquery(
+                        EtteremKoltseg.objects
+                        .filter(etterem__isnull=True, platform=OuterRef('platform'))
+                        .values('platform')
+                        .annotate(s=Sum('osszeg'))
+                        .values('s')
+                    ),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+            )
+            .annotate(
+                cost_sum=Case(
+                    When(_plat_sum__gt=0, then=F('_plat_sum')),
+                    default=F('_rest_sum'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )
+            .annotate(total_price=F('ar') + F('cost_sum'))
+            .order_by('total_price')
+            .values('total_price')[:1]
+        )
 
         base = (
             Etel.objects.all()
             .annotate(
-                min_price=Min(f"{REL}__ar"),
+                min_total_price=Subquery(offers_subq, output_field=DecimalField(max_digits=10, decimal_places=2)),
                 offer_count=Count(f"{REL}", distinct=True),
                 avg_rating=Avg(f"{REL}__felhaszn_ertekelesek"),
             )
@@ -110,8 +157,8 @@ class EtelSearchView(ListView):
 
         ordering = {
             "alap": ("nev",),
-            "olcso": ("min_price", "nev"),
-            "draga": ("-min_price", "nev"),
+            "olcso": ("min_total_price", "nev"),
+            "draga": ("-min_total_price", "nev"),
             "ertekeles": ("-avg_rating", "nev"),
             "nev": ("nev",),
         }.get(sort, ("nev",))

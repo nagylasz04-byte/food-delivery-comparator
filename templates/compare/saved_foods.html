@@ -12,7 +12,13 @@
         </div>
         <div style="display:flex; gap:.5rem;">
           <a class="btn" href="{% url 'compare:offers_for_etel' m.etel.id %}">Ár keresés</a>
-          <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:toggle_save' m.etel.id %}?next={% url 'compare:saved_foods' %}">Eltávolítás</a>
+          {% if request.user.is_staff and m.felhasznalo != request.user %}
+            {# staff deleting another user's save: use explicit delete view #}
+            <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:mentes_delete' m.pk %}">Eltávolítás</a>
+          {% else %}
+            {# owner or normal user: toggle_save keeps current behavior #}
+            <a class="btn" style="background:#e74c3c; color:#fff;" href="{% url 'compare:toggle_save' m.etel.id %}?next={% url 'compare:saved_foods' %}">Eltávolítás</a>
+          {% endif %}
         </div>
       </li>
     {% endfor %}
