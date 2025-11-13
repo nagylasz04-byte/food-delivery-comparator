@@ -82,7 +82,7 @@ class EtelDeleteView(LoginRequired, WritePermissionRequired, DeleteView):
 # ---------- KERESÉS / RENDEZÉS (ár-információkkal) ----------
 class EtelSearchView(ListView):
     template_name = "catalog/kereses.html"
-    paginate_by = 20
+    paginate_by = 5
     context_object_name = "talalatok"
 
     def get_queryset(self):
