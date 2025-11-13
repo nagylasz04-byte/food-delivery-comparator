@@ -75,8 +75,28 @@ class OffersForEtelView(TemplateView):
                 output_field=DecimalField(max_digits=10, decimal_places=2)
             ))
             .annotate(total_price=F("ar") + F("cost_sum"))
-            .order_by("total_price", "ar")
         )
+
+        # Default ordering is by total_price then by raw price for stability.
+        # Sorting is applied only when a recognized `sort` query parameter is present
+        # (so clicking other parts of the page does not change ordering).
+        sort = self.request.GET.get("sort")
+        direction = self.request.GET.get("dir", "asc")
+        if sort in ("ar", "szallitas"):
+            if sort == "ar":
+                field = "total_price"
+                secondary = "ar"
+            else:
+                field = "szallitas_ido"
+                secondary = "total_price"
+
+            if direction == "desc":
+                order_fields = [f"-{field}", secondary]
+            else:
+                order_fields = [field, secondary]
+            offers = offers.order_by(*order_fields)
+        else:
+            offers = offers.order_by("total_price", "ar")
 
         min_total = offers.first().total_price if offers else None
         offer_count = offers.count()
@@ -109,6 +129,8 @@ class OffersForEtelView(TemplateView):
             "avg_rating": avg_rating,
             "koltsegek_by_etterem": koltsegek_by_etterem,
             "koltsegek_by_platform": koltsegek_by_platform,
+            "current_sort": sort if sort in ("ar", "szallitas") else None,
+            "current_dir": direction,
             "is_saved": (
                 self.request.user.is_authenticated and
                 Mentes.objects.filter(felhasznalo=self.request.user, etel=etel).exists()

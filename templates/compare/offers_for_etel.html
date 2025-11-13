@@ -4,10 +4,22 @@
 {% block content %}
 
 <!-- Felső kereső a meglevő listanézetedre mutat -->
-<form method="get" action="{% url 'catalog:kereses' %}" style="display:flex; gap:.6rem; margin-bottom:1rem;">
-  <input name="q" placeholder="Mit keres?" style="flex:1; padding:.7rem .9rem; border:1px solid #ddd; border-radius:10px;">
-  <button class="btn" style="padding:.7rem 1rem;">Keresés</button>
-</form>
+<div style="display:flex; gap:.6rem; margin-bottom:1rem; align-items:center;">
+  <form method="get" action="{% url 'catalog:kereses' %}" style="display:flex; gap:.6rem; flex:1;">
+    <input name="q" placeholder="Mit keres?" style="flex:1; padding:.7rem .9rem; border:1px solid #ddd; border-radius:10px;">
+    <button class="btn" style="padding:.7rem 1rem;">Keresés</button>
+  </form>
+
+  <!-- Inline rendezés választó a termékoldalon (növekvő rendezés választásához) -->
+  <form method="get" style="display:inline-flex; align-items:center;">
+    <select name="sort" onchange="this.form.submit()" style="border-radius:999px; padding:.45rem .8rem; border:1px solid #ddd; background:#fff;">
+      <option value="" {% if not current_sort %}selected{% endif %}>Rendezés</option>
+      <option value="ar" {% if current_sort == 'ar' %}selected{% endif %}>Ár növekvő</option>
+      <option value="szallitas" {% if current_sort == 'szallitas' %}selected{% endif %}>Szállítási idő növekvő</option>
+    </select>
+    <input type="hidden" name="dir" value="asc">
+  </form>
+</div>
 
 <!-- Fejléc – termék kártya -->
 <div style="display:grid; grid-template-columns:180px 1fr; gap:1rem; align-items:center; padding:1rem; border:1px solid #eee; border-radius:12px; margin-bottom:1rem;">
@@ -54,9 +66,23 @@
         <tr>
         <th style="text-align:left; padding:.8rem; border-bottom:1px solid #eee;">Platform</th>
         <th style="text-align:left; padding:.8rem; border-bottom:1px solid #eee;">Termék</th>
-        <th style="text-align:right; padding:.8rem; border-bottom:1px solid #eee; white-space:nowrap;">Összesített ár</th>
+        <th style="text-align:right; padding:.8rem; border-bottom:1px solid #eee; white-space:nowrap;">
+          <a href="?sort=ar&dir={% if current_sort == 'ar' and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}" style="color:inherit; text-decoration:none;">
+            Összesített ár
+            {% if current_sort == 'ar' %}
+              {% if current_dir == 'asc' %} ↑ {% else %} ↓ {% endif %}
+            {% endif %}
+          </a>
+        </th>
         <th style="text-align:left; padding:.8rem; border-bottom:1px solid #eee;">Rejtett költségek</th>
-        <th style="text-align:center; padding:.8rem; border-bottom:1px solid #eee;">Szállítási idő</th>
+        <th style="text-align:center; padding:.8rem; border-bottom:1px solid #eee;">
+          <a href="?sort=szallitas&dir={% if current_sort == 'szallitas' and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}" style="color:inherit; text-decoration:none;">
+            Szállítási idő
+            {% if current_sort == 'szallitas' %}
+              {% if current_dir == 'asc' %} ↑ {% else %} ↓ {% endif %}
+            {% endif %}
+          </a>
+        </th>
         <th style="text-align:right; padding:.8rem; border-bottom:1px solid #eee;"></th>
       </tr>
     </thead>
