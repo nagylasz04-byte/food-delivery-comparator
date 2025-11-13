@@ -118,10 +118,7 @@
   <!-- Fejléc: cím és lapfülek -->
   <header>
     <h1>Food Compare – <span style="color:#60a5fa">Foodora</span></h1> <!-- Oldalcím, Foodora kékkel -->
-    <nav class="tabs"> <!-- Navigációs lapfülek -->
-      <a class="tab active" href="./foodora.html">Foodora</a> <!-- Aktív lap -->
-      <a class="tab" href="./wolt.html">Wolt</a> <!-- Másik oldal linkje -->
-    </nav>
+    <!-- header tabs removed -->
   </header>
 
   <div class="grid"> <!-- Kétoszlopos (desktop) / egyoszlopos (mobil) elrendezés -->
@@ -148,7 +145,6 @@
         <select id="categoryFilter" class="select"> <!-- Kategória szűrő -->
           <option value="">Összes kategória</option>
         </select>
-        <button class="btn" id="regen">Új random adatok</button> <!-- Újragenerálás -->
       </div>
     </section>
 
@@ -264,7 +260,7 @@
     const $restaurantFilter = document.getElementById("restaurantFilter"); // étterem szűrő
     const $categoryFilter = document.getElementById("categoryFilter"); // kategória szűrő
     const $countInfo = document.getElementById("countInfo"); // lábléc infó
-    const $regen = document.getElementById("regen"); // újrageneráló gomb
+    // "regen" gomb eltávolítva a DOM-ból
 
     // 8) Kezdő adatállapot
     let DATA = buildDataset();
@@ -330,11 +326,7 @@
     // 12) Eseménykezelők: szűrők és újragenerálás
     $restaurantFilter.addEventListener("change", renderTable); // étterem szűrő változott
     $categoryFilter.addEventListener("change", renderTable);   // kategória szűrő változott
-    $regen.addEventListener("click", () => {                   // új adatok kérése
-      DATA = buildDataset(); // új random csomag
-      renderFilters();       // szűrők frissítése
-      renderTable();         // táblázat újrarajzolása
-    });
+    // Felhasználói újragenerálás eltávolítva; az adatok programból frissíthetők.
 
     // 13) Kezdeti kirajzolás
     renderFilters(); // tölti a selecteket
