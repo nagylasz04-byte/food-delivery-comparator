@@ -24,55 +24,55 @@
       "id": 1,
       "etterem_id": 1,
       "koltseg_tipus": "szallitas",
-      "osszeg": 736
+      "osszeg": 576
     },
     {
       "id": 2,
       "etterem_id": 1,
       "koltseg_tipus": "csomagolas",
-      "osszeg": 132
+      "osszeg": 117
     },
     {
       "id": 3,
       "etterem_id": 1,
       "koltseg_tipus": "borravalo",
-      "osszeg": 429
+      "osszeg": 237
     },
     {
       "id": 4,
       "etterem_id": 2,
       "koltseg_tipus": "szallitas",
-      "osszeg": 1428
+      "osszeg": 704
     },
     {
       "id": 5,
       "etterem_id": 2,
       "koltseg_tipus": "csomagolas",
-      "osszeg": 291
+      "osszeg": 283
     },
     {
       "id": 6,
       "etterem_id": 2,
       "koltseg_tipus": "borravalo",
-      "osszeg": 30
+      "osszeg": 76
     },
     {
       "id": 7,
       "etterem_id": 3,
       "koltseg_tipus": "szallitas",
-      "osszeg": 506
+      "osszeg": 583
     },
     {
       "id": 8,
       "etterem_id": 3,
       "koltseg_tipus": "csomagolas",
-      "osszeg": 89
+      "osszeg": 386
     },
     {
       "id": 9,
       "etterem_id": 3,
       "koltseg_tipus": "borravalo",
-      "osszeg": 383
+      "osszeg": 317
     }
   ],
   "etel": [
@@ -118,19 +118,19 @@
       "etel_id": 1,
       "etterem_id": 1,
       "platform": "foodora",
-      "ar": 4658,
-      "szallitas_ido": "40–55 perc",
-      "felhaszn_ertekeles": 4.2,
-      "promocio": 0
+      "ar": 5631,
+      "szallitas_ido": "30–45 perc",
+      "felhaszn_ertekeles": 4.7,
+      "promocio": 500
     },
     {
       "id": "2-2",
       "etel_id": 2,
       "etterem_id": 2,
       "platform": "foodora",
-      "ar": 2962,
-      "szallitas_ido": "40–55 perc",
-      "felhaszn_ertekeles": 4.3,
+      "ar": 2794,
+      "szallitas_ido": "25–35 perc",
+      "felhaszn_ertekeles": 4.8,
       "promocio": 0
     },
     {
@@ -138,19 +138,19 @@
       "etel_id": 3,
       "etterem_id": 3,
       "platform": "foodora",
-      "ar": 3804,
+      "ar": 4944,
       "szallitas_ido": "30–45 perc",
-      "felhaszn_ertekeles": 4,
-      "promocio": 300
+      "felhaszn_ertekeles": 3.9,
+      "promocio": 0
     },
     {
       "id": "1-4",
       "etel_id": 4,
       "etterem_id": 1,
       "platform": "foodora",
-      "ar": 2883,
-      "szallitas_ido": "30–45 perc",
-      "felhaszn_ertekeles": 3.8,
+      "ar": 2003,
+      "szallitas_ido": "40–55 perc",
+      "felhaszn_ertekeles": 4.1,
       "promocio": 0
     },
     {
@@ -158,10 +158,10 @@
       "etel_id": 5,
       "etterem_id": 2,
       "platform": "foodora",
-      "ar": 4390,
-      "szallitas_ido": "25–35 perc",
-      "felhaszn_ertekeles": 4,
-      "promocio": 300
+      "ar": 4277,
+      "szallitas_ido": "30–45 perc",
+      "felhaszn_ertekeles": 4.6,
+      "promocio": 0
     }
   ]
 }
