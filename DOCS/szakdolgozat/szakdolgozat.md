@@ -32,348 +32,361 @@ Hely: Debrecen
 
 1. Bevezetés
 2. Tárgyalási rész
-  ***CÍMLAP***
+  2.1. Rövid műszaki áttekintés
+  2.2. Rendszerarchitektúra és komponensek
+  2.3. Adatmodell és adatbázis (részletes táblázatos leírás)
+  2.4. Backend implementáció (kód és dizájn döntések)
+  2.5. Frontend implementáció és használati útmutató
+  2.6. Scraper és import pipeline (módszerek, hibakezelés)
+  2.7. Tesztelés, teljesítmény és mérőszámok
+  2.8. Biztonság és jogosultságkezelés
+3. Összefoglalás és személyes reflexió
+4. Irodalomjegyzék
+5. Függelék (kódrészletek, SQL, ER-diagram helyőrzők)
+6. Köszönetnyilvánítás
 
-  Debreceni Egyetem
+---
+
+# 1. Bevezetés
 
-  Informatikai Kar
+Miért választottam ezt a témát?
+
+A mobil- és webalapú ételrendelő szolgáltatások használata globálisan és hazai szinten is jelentősen növekedett. A felhasználók számára fontos információ, hogy egy adott étel valójában mennyibe kerül különböző platformokon, ha figyelembe vesszük az alapárat, a platform-specifikus rejtett költségeket és a szállítási időt. Ennek a kérdéskörnek gyakorlati értéke van, továbbá jó terep a web-scraping, adattisztítás és backend–frontend integrációk bemutatására.
+
+Relevancia és célkitűzések
+
+- Gyakorlati cél: bemutatni egy olyan rendszert, amely különböző platformok ajánlatait egy helyen összehasonlítja; a fogyasztói döntést támogató információkat szolgáltat.
+- Tudományos/technikai cél: bemutatni az adatkinyerés (scraping), normalizáció, idempotens import és az ORM-alapú aggregáció megoldásait.
+
+A dolgozatban bemutatom a fejlesztési folyamatot, a választott technológiákat, a tervezési döntések indoklását, a megvalósítást és a vizsgálati eredményeket.
+
+---
+
+# 2. Tárgyalási rész
+
+Ez a fejezet részletesen tárgyalja a projekt minden releváns aspektusát. A cél, hogy egy olvasó (fejlesztő vagy vizsgáztató) megértse a rendszer felépítését, a fontosabb kód- és adatmintákat, valamint a felmerült problémák megoldását.
+
+## 2.1 Rövid műszaki áttekintés
 
-  Programtervezés és Alkalmazások Tanszék
+Használt technológiák (összefoglaló):
+
+- Programnyelv: Python 3.11
+- Backend: Django (projekt és alkalmazások: `catalog`, `compare`, `billing`, `users`)
+- Adatbázis: SQLite (fejlesztési környezet), migrációk támogatása Django migrációs rendszerrel; javasolt éles környezetre: PostgreSQL
+- Böngésző-vezérelt scraping: Playwright for Python
+- HTML parsing / kiegészítők: BeautifulSoup (eseti), json, regex
+- Verziókezelés: Git (GitHub repo: https://github.com/nagylasz04-byte/food-delivery-comparator)
 
+Fejlesztési környezet – telepítés röviden (Windows PowerShell):
 
-  DIPLOMAMUNKA / SZAKDOLGOZAT
+```powershell
+python -m venv .venv
+. .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+Megjegyzés: Playwright használatakor futtasd `python -m playwright install`.
+
+## 2.2 Rendszerarchitektúra és komponensek
+
+Magas szintű modulok:
+
+- Scraper (scripts/): felelős a demó HTML-ekből történő adatkivonásért; két mód:
+  - statikus: HTML-ből beágyazott JSON kinyerése
+  - dinamikus: Playwright futtatása, runtime JS objektumok olvasása
+- Importer (Django management command `import_scraped`): normalizálja és betölti a JSON payload-ot a Django modellekbe idempotens módon (update_or_create logika)
+- Backend: Django modellek, nézetek (views), sablonok. A backend végzi az adat-annotációt (összköltség számítása) és a rendezést.
+- Frontend: Django sablonok a `templates/` könyvtárban; cél a könnyű olvashatóság, egyszerű UI.
+
+Adatfolyam:
+
+Scraper → `data/*.extracted.json` → `import_scraped` → SQLite DB → Django views → templates → felhasználó
+
+## 2.3 Adatmodell és adatbázis (részletesen)
+
+Az adatmodell kulcsfontosságú; itt részletes táblázatos leírást adok (megegyezően a kari formai mintával).
+
+1) FELHASZNÁLÓ (`users.Felhasznalo`)
+- ID (PK): automatikus `id`
+- nev: CharField (max_length=150)
+- username, password, email: az `AbstractUser` mezői
+- kedvenc_etterem_id: FK → `catalog.Etterem.id` (nullable, on_delete=SET_NULL)
 
+2) ÉTEL (`catalog.Etel`)
+- ID (PK)
+- nev: CharField
+- leiras: TextField (nullable)
+- kategoria: CharField (nullable)
+- kep_url: URLField (nullable)
 
-  **Cím:** Food Delivery Comparator — többplatformos étel-összehasonlító rendszer
+3) ÉTTEREM (`catalog.Etterem`)
+- ID (PK)
+- nev: CharField
+- cim: CharField (nullable)
+- platform: CharField (choices: `wolt`, `foodora`, `bolt`, `egyeb`)
+- platform_logo_url, platform_url: URLField (nullable)
 
+4) ÉTTEREM–ÉTEL INFORMÁCIÓ (`compare.EtteremEtelInfo`)
+- ID (PK)
+- etel_id: FK → `catalog.Etel.id` (CASCADE)
+- etterem_id: FK → `catalog.Etterem.id` (CASCADE)
+- platform: CharField (choices)
+- ar: DecimalField
+- szallitas_ido: DurationField (nullable) — a projekt során normálisan a DurationField-t használtuk, de a forrásadatok széles variabilitása miatt extra normalizáció valósult meg
+- felhaszn_ertekelesek: DecimalField (átlag, nullable)
+- promocio: CharField (nullable)
+- constraint: `unique_together = ("etel","etterem","platform")`
+
+5) ÉTTEREM_KÖLTSÉG (`billing.EtteremKoltseg`)
+- ID (PK)
+- etterem_id: FK → `catalog.Etterem.id` (nullable) — ha null, platform-szintű költség
+- etel_id: FK → `catalog.Etel.id` (nullable)
+- platform: CharField (nullable)
+- koltseg_tipus: CharField (choices: `szallitas`, `csomagolas`, `borravalo`, `egyeb`)
+- osszeg: DecimalField
+
+6) MENTÉS (`compare.Mentes`)
+- ID (PK)
+- felhasznalo_id: FK → `users.Felhasznalo.id`
+- etel_id: FK → `catalog.Etel.id`
+- letrehozva: DateTimeField (auto_now_add=True)
+- constraint: `unique_together = ("felhasznalo","etel")`
 
-  **Szerző:** Nagy László
+Az adatmodell ER leírása (röviden):
+- `Felhasznalo` 1:N `Mentes`
+- `Etel` 1:N `EtteremEtelInfo`
+- `Etterem` 1:N `EtteremEtelInfo`
+- `Etterem` 1:N `EtteremKoltseg`
 
-  **Neptun:** FY3VII
+Megjegyzés a `szallitas_ido`-ról: a forrásadatok gyakran szöveges formátumú intervallumokat adnak (például "25–35 perc"). A numerikus rendezéshez a pipeline parsolja és normalizálja ezeket DurationField-re vagy egy `min_minutes` annotate mezőre.
 
-  **Szak:** Programtervező informatikus (BSc)
+## 2.4 Backend implementáció — fontosabb részletek
 
-  **Témavezető:** Major Sándor Roland, tanársegéd
+Főbb elvek:
 
-  **Hely:** Debrecen
+- Tiszta, jól tesztelhető ORM lekérdezések (Subquery, OuterRef, Coalesce) az aggregációhoz
+- Idempotens import: `update_or_create` / `get_or_create` sémák az importerben
+- Biztonság: minden törlési/módosítási művelet backend-en is jogosultság ellenőrzést futtat
 
-  **Év:** 2025
+Példa: költségek összevonása és `total_price` számítása (részlet, egyszerűsítve):
 
-  ---
+```python
+from django.db.models import Sum, F, Subquery, OuterRef
 
-  **Tartalomjegyzék**
+restaurant_sum_subq = (
+    EtteremKoltseg.objects
+    .filter(etterem=OuterRef('etterem_id'))
+    .values('etterem')
+    .annotate(s=Sum('osszeg'))
+    .values('s')
+)
 
-  1. Bevezetés
-  2. Technical overview
-  3. Implementation details
-    3.1 Backend
-    3.2 Frontend
-    3.3 Scraper & Importer
-    3.4 Adatvalidáció és normalizáció
-  4. Tesztelés, mérés és eredmények
-  5. Összefoglalás
-  6. Irodalomjegyzék
-  7. Függelék
-  8. Köszönetnyilvánítás
+platform_sum_subq = (
+    EtteremKoltseg.objects
+    .filter(platform=OuterRef('platform'), etterem__isnull=True)
+    .values('platform')
+    .annotate(s=Sum('osszeg'))
+    .values('s')
+)
 
-  ---
+offers = EtteremEtelInfo.objects.filter(etel_id=etel_id)
+offers = offers.annotate(
+    _rest_sum=Subquery(restaurant_sum_subq),
+    _plat_sum=Subquery(platform_sum_subq),
+)
+offers = offers.annotate(cost_sum=Coalesce(F('_plat_sum'), F('_rest_sum'), Value(0)))
+offers = offers.annotate(total_price=F('ar') + F('cost_sum'))
+```
 
-  # 1. Bevezetés
+Rendezési logika: a sablonban vagy a query param alapján a view alkalmazza a rendezést (`?sort=ar&dir=asc` vagy `?sort=szallitas&dir=asc`). Fontos, hogy a rendezés csak akkor változzon, ha a felhasználó kifejezetten választja.
 
-  Miért választottam ezt a témát?
+## 2.5 Frontend implementáció és használati útmutató
 
-  Az online ételrendelés napjainkban széles körben elterjedt, számos szolgáltató versenyez az árak, promóciók és kényelmi funkciók terén. A felhasználók döntését gyakran nemcsak az étel alapára, hanem a hozzá kapcsolódó rejtett költségek és a szállítási idő is befolyásolja. Ennek a problémának gyakorlati jelentősége van: egy egyszerű, könnyen használható összehasonlító eszköz segíthet a fogyasztóknak jobb döntéseket hozni. Személyes motivációm, hogy teljes körűen megismerjem a web-scraping, adatnormalizáció és full-stack fejlesztés folyamatait, mivel ezek a területek korábban részben vagy egyáltalán nem voltak ismerősek számomra.
+Felhasználói nézetek:
 
-  Mi a relevancia?
+- Termék/ajánlat oldal (`/termek/<id>/`): megjeleníti a termék alapadatait, az ajánlatok táblázatát (platform, étterem, összesített ár, rejtett költségek, szállítási idő, link a platformra).
+- Mentett ételek (`/mentett-etelek/`): listája a felhasználó mentett tételeinek, mini-képpel és gyorslinkekkel.
 
-  - Gyakorlati: csökkentheti a felhasználók költségeit és növelheti az átláthatóságot a piacon.
-  - Tudományos/oktatási: demonstrálja a scraping, adattisztítás és szerver-oldali aggregáció gyakorlati problémáit és megoldásait.
+Használati példa: a felhasználó rákattint egy oszlop fejlécére az ár vagy a szállítási idő szerinti rendezéshez; a rendszer a query param-ek segítségével frissíti a nézetet.
 
-  Mit sikerült megvalósítani?
+Felhasználói interakciók (gyors lista):
 
-  - Egy működő, helyben futtatható Django alkalmazás, amely több platformról származó ajánlatokat importál és összehasonlít.
-  - Kétféle scraper-stratégia: statikus JSON-extrahálás és Playwright-alapú dinamikus kinyerés.
-  - Idempotens import pipeline, amely kezeli a platform- és étterem-szintű költségeket, kiszámítja az összesített árat és támogatja a rendezést ár és szállítási idő szerint.
+- Mentés/mentés visszavonása (bookmark) — `toggle_save` endpoint
+- Rendezés a táblázatban — linkek `?sort=...&dir=...`
+- Átirányítás a forrás platformra (külső link, új ablak)
 
-  ---
+UI készlet: egyszerű CSS, fókusz a kontrasztra és olvashatóságra; nem cél egy komplex SPA megvalósítása.
 
-  # 2. Technical overview
+## 2.6 Scraper és import pipeline — részletesebb
 
-  Röviden: milyen platformok és könyvtárak kerültek használatra, hogyan futtatható a projekt, és hol található a forráskód.
+Módszer és kihívások:
 
-  Használt technológiák és indoklás:
+- Statikus extrakció: ha a demó HTML tartalmaz beágyazott JSON-t (script tag), akkor egyszerűen parse-eljük.
+- Dinamikus extrakció (Playwright): ha az oldal JS generálja a `DATA` objektumot, akkor Playwright-tal betöltjük a fájlt és `page.evaluate`-vel kinyerjük.
 
-  - Python 3.11 — a projekt backendje és scraperszkriptek Pythonban íródtak a széles ökoszisztéma és gyors fejlesztés miatt.
-  - Django — gyors prototípus-készítés, beépített ORM és admin felület miatt választottam.
-  - SQLite (fejlesztéshez), ajánlott PostgreSQL éles környezetben — SQLite egyszerű és zero-configuration, de nagyobb adatmennyiségnél PostgreSQL szükséges.
-  - Playwright for Python — megbízható headless böngészővezérlés a dinamikus (JS által generált) oldalakhoz.
-  - BeautifulSoup, regex, json — adattisztításhoz és parse-oláshoz.
+Példa Playwright használatra (szinkron):
 
-  Hol található a projekt?
+```python
+from playwright.sync_api import sync_playwright
 
-  GitHub repository: https://github.com/nagylasz04-byte/food-delivery-comparator (branch: `develop`)
+def extract_payload(file_url: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(file_url)
+        payload = page.evaluate('() => (typeof DATA !== "undefined" ? DATA : null)')
+        browser.close()
+    return payload
+```
 
-  Hogyan futtatható (összefoglaló lépések Windows PowerShell alatt):
+Import logika (egyszerűsített):
 
-  ```powershell
-  python -m venv .venv
-  . .\.venv\Scripts\Activate.ps1
-  pip install -r requirements.txt
-  python manage.py migrate
-  python manage.py runserver
-  ```
+1. Beolvassuk a JSON payload-ot.
+2. A `food` / `restaurant` entitásokat `get_or_create`-ral létrehozzuk/aktualizáljuk.
+3. A `offer` rekordokat `update_or_create`-ral kezeljük, biztosítva az idempotenciát.
+4. A költség-sorokat (`EtteremKoltseg`) külön táblába írjuk, és platform-szintű költségeket is kezelünk (etterem=null).
 
-  Megjegyzés: ha Playwright-ot használsz, telepítsd a szükséges böngésző binárisokat:
+Hibakezelés és robustság:
 
-  ```powershell
-  python -m playwright install
-  ```
+- Fallback stratégia: ha nincs `DATA`, akkor próbálunk DOM-ból extrahálni táblázat-sorokat.
+- Input validáció: minden bejegyzésnél ellenőrzöm a kötelező mezőket (pl. `price`) és naplózom a problémás sorokat.
 
-  ---
+## 2.7 Tesztelés, teljesítmény és mérőszámok
 
-  # 3. Implementation details
+## 2.7 Tesztelés, teljesítmény és mérőszámok
 
-  Ez a dolgozat leghosszabb és legsürgősebb része; célom, hogy a fejlesztő és a vizsgáztató egyaránt megértse a rendszer felépítését, fontosabb döntéseit és a megvalósítás műszaki részleteit.
+Tesztelés:
 
-  ## 3.1 Architektúra összefoglaló
+- A projektben elsősorban manuális (explorative) tesztelésre és rövid integrációs ellenőrzésekre támaszkodtam. A cél a viselkedés, a megjelenítés és az adatimport helyességének ellenőrzése volt.
 
-  A rendszer három fő komponensre bontható:
+- Javasolt manuális tesztelési forgatókönyvek (példák):
+  1. Importer idempotencia: futtasd `python manage.py import_scraped` ugyanazon `data/*.extracted.json` fájlokon kétszer; ellenőrizd, hogy nem jönnek létre duplikált rekordok és az árak/mezők frissülnek.
+  2. Rendezés és annotáció: nyiss meg egy termékoldalt (`/termek/<id>/`) és ellenőrizd, hogy a `?sort=ar&dir=asc` és `?sort=szallitas&dir=asc` működik és a megjelenített `Összesített ár` megegyezik az adatbázisban számolt értékkel.
+  3. Költség-számítás ellenőrzése: vegyél fel egy új `EtteremKoltseg` sort platform-szintű és étterem-szintű költséggel; ellenőrizd, hogy az `OffersForEtelView` a helyes `cost_sum` értéket jeleníti meg.
+  4. Mentések működése: mentett ételek hozzáadása/eltávolítása felhasználói fiókkal, ellenőrizd a lista és a képek megjelenését.
 
-  1. Scraper: feldolgozza a statikus HTML mintákat vagy futtatja a headless böngészőt, és JSON payloadot készít.
-  2. Importer: a Django management command (`import_scraped`) beolvassa a JSON-t és idempotensen menti az entitásokat az adatbázisba.
-  3. Backend + frontend: Django views és sablonok szolgáltatják a felhasználói felületet, ahol az ajánlatok annotálva és rendezve jelennek meg.
+Teljesítmény:
 
-  Az adatfolyam: Scraper → `data/*.extracted.json` → `manage.py import_scraped` → DB → Django view → Template → Felhasználó.
+- Fejlesztési környezetben SQLite-ot használva nagyobb adathalmazok esetén ajánlott PostgreSQL-re váltani. Az annotációk (különösen Subquery-k) nagyobb adatmennyiségnél lassulást okozhatnak; indexelés és lekérdezés-optimalizálás szükséges.
 
-  ## 3.2 Backend (fejlesztői dokumentáció)
+Mérőszámok és javasolt monitorozás:
 
-  Tervezési célok:
+- Import futási idő (per payload), adatállományonként
+- Lekérdezés-idők az ajánlat-oldalon (percentilisek)
+- Weboldal válaszidő a lekérdezés és renderelés között
 
-  - Tiszta, újrahasználható ORM lekérdezések
-  - Idempotens import és könnyű hibakeresés
-  - Külön kezelhető platform- és étterem-szintű költségek
+## 2.8 Biztonság és jogosultságkezelés
 
-  Adatmodell (rövid áttekintés): `Etel`, `Etterem`, `EtteremEtelInfo`, `EtteremKoltseg`, `Mentes`, `Felhasznalo` (egyedi user model). A részletes mezők a repository `catalog.models`, `compare.models`, `billing.models` fájlokban találhatók.
+Jogosultságok és elvek:
 
-  Kulcsmegoldás — költség-annotáció és összesített ár:
+- Használjuk a Django beépített `is_staff`/`is_superuser` jelzőket admin műveletekhez
+- Backend ellenőrzés minden kritikus végpontnál (pl. törlés) — nem csak frontend gombelrejtés
+- Potenciális további fejlesztés: audit log, rate limiting az import parancsokra, és RBAC finomítása (Django Permission model használata)
 
-  Az `EtteremKoltseg` táblában lehet platform-szintű (etterem=null) és étterem-szintű költségeket rögzíteni. A view két Subquery-t alkalmaz: egyet az étterem-szintű költségekhez, egyet pedig a platform-szintű költségekhez. A `Coalesce` segítségével priorizáljuk az étterem-szintű értéket, ha az létezik, különben a platform-szintűt használjuk.
 
-  Kód példaként (részlet):
+Különös figyelem a személyes adatokra: a jelen projekt nem tárol érzékeny személyes adatot kívül a felhasználó nevét és emailjét (ha van). A production környezetben javasolt HTTPS, titkos környezeti változók és biztonsági ellenőrzések.
 
-  ```python
-  from django.db.models import OuterRef, Subquery, Sum, F, Value
-  from django.db.models.functions import Coalesce
+---
 
-  # Subquery: összegzi az EtteremKoltseg.osszeg mezőt az adott etteremre
-  rest_sum = (EtteremKoltseg.objects
-        .filter(etterem=OuterRef('etterem_id'))
-        .values('etterem')
-        .annotate(s=Sum('osszeg'))
-        .values('s'))
+# 3 Összefoglalás és személyes reflexió
 
-  # Platform szintű költség, ha nincs etterem-specifikus
-  plat_sum = (EtteremKoltseg.objects
-        .filter(platform=OuterRef('platform'), etterem__isnull=True)
-        .values('platform')
-        .annotate(s=Sum('osszeg'))
-        .values('s'))
+Mit tanultam és miért volt fontos?
 
-  offers = EtteremEtelInfo.objects.filter(etel_id=etel_id)
-  offers = offers.annotate(_rest_sum=Subquery(rest_sum), _plat_sum=Subquery(plat_sum))
-  offers = offers.annotate(cost_sum=Coalesce(F('_rest_sum'), F('_plat_sum'), Value(0)))
-  offers = offers.annotate(total_price=F('ar') + F('cost_sum'))
-  ```
+- Minden új volt számomra: a webfejlesztés alapjai a 0-ról, a Django keretrendszer, az ORM, az adatbázis-kezelés (SQLite), és a scraping technikák (Playwright). A projekt során ezeket a technológiákat gyakorlati problémákon keresztül sajátítottam el.
+- A scraping különösen tanulságos volt: a runtime JS-ből történő adatkinyerés és a DOM alapú fallback megoldások valós webhelyeknél gyakran szükségesek.
+- A backend–frontend integráció megértése (model→view→template) fontos mérföldkő volt számomra.
 
-  Rendezés:
+Nehezebb részek és megoldások
 
-  - A sablonból érkező `?sort=...&dir=...` query-param alapján történik a rendezés. A `min_minutes` mező vagy annotate-olt érték szolgál a szállítási idő szerinti rendezéshez.
+- `szallitas_ido` normalizáció: megoldásként egy `min_minutes` annotate-et vezettünk be, mely a duráció/becslés alsó határát numerikusan adja meg. Ez tette lehetővé a helyes numerikus rendezést.
+- Adatminőség: a források heterogenitása miatt sok validáció és logolás kellett az importerbe.
 
-  Importer (idempotencia):
+Lehetőségek a jövőben
 
-  Az importer a JSON payloadokat `update_or_create` hívásokkal dolgozza fel, így többszöri futtatás nem hoz létre duplikátumokat. A költségeket külön iteráljuk és prioritási szabályokat alkalmazunk.
+- Átállás PostgreSQL-re, cache réteg bevezetése (Redis) a lekérdezések gyorsítására
+- Publikus API készítése az összehasonlított adatok lekérésére
+- UI fejlesztés SPA-val (React/Vue) interaktívabb rendezés és szűrés érdekében
 
-  Példa:
+# 4 Irodalomjegyzék
 
-  ```python
-  for p in payload['offers']:
-    etel, _ = Etel.objects.get_or_create(nev=p['food_name'].strip())
-    etterem, _ = Etterem.objects.get_or_create(nev=p['restaurant_name'].strip(), defaults={'platform': p.get('platform')})
-    EtteremEtelInfo.objects.update_or_create(
-      etel=etel, etterem=etterem, platform=p.get('platform'),
-      defaults={'ar': Decimal(p.get('price') or 0), 'szallitas_ido': parse_delivery(p.get('delivery'))}
-    )
-  ```
+Az alábbi forrásokat használtam a megvalósításhoz (hivatkozások a hivatalos dokumentációkra és releváns forrásokra):
 
-  Adatvalidáció és logolás:
+[1] Django Project Documentation. Available: https://docs.djangoproject.com/
 
-  - A payload első lépése a kötelező mezők ellenőrzése és a hibás sorok naplózása; a rendszer eldobja a hiányos bejegyzéseket, de részletes logot készít hibakódokkal a későbbi javításhoz.
+[2] Python 3 Documentation. Available: https://docs.python.org/3/
 
-  ## 3.3 Frontend (felhasználói útmutató)
+[3] Playwright for Python. Available: https://playwright.dev/python/
 
-  Célközönség: egyszerű felhasználók, akik a lehető leggyorsabban szeretnék összehasonlítani egy adott étel árát több futárplatformon.
+[4] SQLite Documentation. Available: https://www.sqlite.org/docs.html
 
-  Fő nézetek:
+[5] Requests: HTTP for Humans. Available: https://docs.python-requests.org/
 
-  - Termékoldal (`/termek/<id>/`): kártyán megjelenik az étel neve, kép, rövid leírás; alatt táblázat az ajánlatokról: platform, étterem, összesített ár, rejtett költségek listája, szállítási idő, link a platformra.
-  - Mentett ételek (`/mentett-etelek/`): a felhasználó által korábban mentett tételek listája, előnézeti képpel.
+[6] Beautiful Soup Documentation. Available: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 
-  Használati forgatókönyv (példa):
+[7] IEEE citation guide (Concordia University). Available: https://library.concordia.ca/help/citing/ieee.php
 
-  1. A felhasználó beír egy tételnevet a keresőbe, vagy rákattint egy termékre a listából.
-  2. A termékoldalon a felhasználó láthatja, hogy melyik platform mennyiért kínálja ugyanazt az ételt, beleértve a rejtett költségeket.
-  3. A felhasználó rákattint a fejlécre (`Összesített ár` vagy `Szállítási idő`) a rendezéshez.
+További potenciális források (szakirodalom): kutatások a web-scraping megbízhatóságáról, adattisztításról és adat-aggregációs stratégiákról.
 
-  UX megfontolások:
+# 5 Függelék
 
-  - Táblázat mobilon kártyás nézetre vált.
-  - A rejtett költségek megjelenítése nem zavarja meg a fő információt, de könnyen hozzáférhető (tooltip vagy legördülő lista).
+Az alábbiakban további kódrészletek, SQL-minták és diagram-helyőrzők találhatók.
 
-  ## 3.4 Scraper és Importer – részletesen
+## A. SQL CREATE TABLE (mintapélda)
 
-  Scraper stratégiák:
+```sql
+CREATE TABLE catalog_etel (
+  id INTEGER PRIMARY KEY,
+  nev TEXT NOT NULL,
+  leiras TEXT,
+  kategoria TEXT,
+  kep_url TEXT
+);
 
-  - Statikus extrakció: a `scripts/scrape_wolt.py` és `scripts/extract_payload.py` a szükséges JSON-objecteket keresi a letöltött HTML-ben és kimenti azokat `data/*.extracted.json` formátumban. Ez a módszer gyors és általában stabil, ha a forrásoldal JSON-t használ.
-  - Dinamikus extrakció: `scripts/scrape_foodora_browser.py` (Playwright) futtatja a HTML-t és a JS futása után `page.evaluate`-vel olvassa ki a `DATA` objektumot.
+CREATE TABLE catalog_etterem (
+  id INTEGER PRIMARY KEY,
+  nev TEXT NOT NULL,
+  cim TEXT,
+  platform TEXT,
+  platform_logo_url TEXT,
+  platform_url TEXT
+);
 
-  Gyakorlati kihívások és megoldások:
+CREATE TABLE billing_etteremkoltseg (
+  id INTEGER PRIMARY KEY,
+  etterem_id INTEGER,
+  etel_id INTEGER,
+  platform TEXT,
+  koltseg_tipus TEXT,
+  osszeg NUMERIC,
+  FOREIGN KEY(etterem_id) REFERENCES catalog_etterem(id),
+  FOREIGN KEY(etel_id) REFERENCES catalog_etel(id)
+);
+```
 
-  - Változó HTML struktúra: a scraper robosztusságát CSS szelektorok helyett JSON-kulcsok vagy strukturális minták alapján javítottam.
-  - Rate limit és hibakezelés: a Playwright-szkriptek backoff algoritmussal és retry mechanizmussal futnak.
+## B. Parszoló példa: `szallitas_ido` → `min_minutes`
 
-  ## 3.5 Adatnormalizáció: `szallitas_ido` parsolás
+```python
+import re
+from datetime import timedelta
 
-  A `szallitas_ido` mező különösen heterogén: "25–35 perc", "30 perc", "1 óra 10 perc". A numerikus rendezéshez az alsó határt tárolom (vagy annotate-olt értékként számolom ki):
-
-  ```python
-  import re
-
-  def parse_delivery(text: str):
+def parse_delivery(text: str):
+    # egyszerű példa: "25–35 perc" vagy "30 perc" vagy "1 óra 20 perc"
     if not text:
-      return None
-    text = text.strip().lower()
-    hours = 0
-    mins = 0
-    h_match = re.search(r"(\d+)\s*ó(ra)?", text)
-    if h_match:
-      hours = int(h_match.group(1))
-    m_match = re.search(r"(\d+)\s*perc", text)
-    if m_match:
-      mins = int(m_match.group(1))
-    if hours or mins:
-      return hours*60 + mins
-    rng = re.search(r"(\d+)\s*[–\-]\s*(\d+)", text)
-    if rng:
-      return int(rng.group(1))
-    s = re.search(r"(\d+)", text)
-    if s:
-      return int(s.group(1))
-    return None
-  ```
-
-  Ez a függvény visszaadja a percben számolt alsó határt, amely alkalmas a rendezéshez és statisztikai feldolgozáshoz.
-
-  ---
-
-  # 4. Tesztelés, mérés és eredmények
-
-  Tesztelési megközelítés:
-
-  - Manuális forgatókönyvek: importer idempotencia, rendezés ellenőrzése, költség-számítás validálása, mentések működése.
-  - Unit tesztek: `parse_delivery`, kisebb segédfüggvények.
-  - Integrációs tesztek: import pipeline egy 50-200 rekordos mintával.
-
-  Eredmények és megfigyelések:
-
-  - A kérdőíves felmérés (25 kitöltés) alapján a felhasználók prioritásai megerősítették a tervezett funkciókat: legolcsóbb ajánlat, szállítási idő és kuponok összehasonlítása.
-  - A Subquery-annotációk jól működnek kis és közepes adatmennyiségnél SQLite/Dev környezetben; nagyobb adat esetén PostgreSQL és cache (Redis) bevezetése javasolt.
-
-  Mérési javaslatok (ajánlott mérőszámok):
-
-  - Import futási idő (átlag és 95 percentilis) payload-onként
-  - Oldal render idő (átlag, p95) a `/termek/<id>/` nézetre
-  - Lekérdezés-idők (DB) a fő annotált lekérdezésekre
-
-  ---
-
-  # 5. Összefoglalás
-
-  Mit tanultam?
-
-  - A projekt során a legtöbb technológia számomra új volt: a webfejlesztés teljes folyamatát elsajátítottam (backend + ORM + sablonok), a scraping és headless böngésző vezérlése volt a legnagyobb kihívás.
-  - A backend–frontend integráció megértése volt a legértékesebb tapasztalat: hogyan kerül az importált adat a felhasználó elé konzisztens módon.
-
-  Mely részek voltak nehezebbek és melyek egyszerűbbek?
-
-  - Nehéz: scraping robosztusságának biztosítása, változó források kezelése; `szallitas_ido` normalizálása; skálázhatósági kérdések.
-  - Egyszerűbb: Django alapfunkciók (modellek, admin), alapvető sablonrenderelés.
-
-  Javaslatok a további munkára:
-
-  - PostgreSQL-re váltás, Redis cache bevezetése, automatizált monitorozás (Prometheus/Grafana).
-  - REST API szolgáltatás az összehasonlított adatokhoz, és opcionálisan egy mobil vagy SPA frontend.
-
-  ---
-
-  # 6. Irodalomjegyzék
-
-  Az online forrásokra IEEE-stílusú hivatkozással hivatkozom; itt elsősorban a hivatalos dokumentációk szerepelnek:
-
-  [1] Django Project Documentation. Available: https://docs.djangoproject.com/
-
-  [2] Python 3 Documentation. Available: https://docs.python.org/3/
-
-  [3] Playwright for Python. Available: https://playwright.dev/python/
-
-  [4] SQLite Documentation. Available: https://www.sqlite.org/docs.html
-
-  [5] Requests: HTTP for Humans. Available: https://docs.python-requests.org/
-
-  [6] Beautiful Soup Documentation. Available: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
-
-  [7] IEEE citation guide. Available: https://library.concordia.ca/help/citing/ieee.php
-
-  ---
-
-  # 7. Függelék
-
-  ## A. Kérdőív (teljes szöveg)
-
-  Ételfutár szolgáltatások használata — kérdőív (anonim)
-
-  Szép Napot!\n\nNagy László vagyok a Debreceni Egyetem Informatika Karán, programtervező informatikus hallgató. Ez a kérdőív a szakdolgozatom részeként készült, célja az ételfutár-alkalmazások használati szokásainak és költségeinek felmérése. A válaszok anonim módon kerülnek feldolgozásra.
-
-  Főbb kérdések:
-  - Korosztály
-  - Milyen gyakran rendelsz
-  - Mely alkalmazásokat használod
-  - Szoktál-e összehasonlítani több platformot
-  - Mi alapján választasz (ár, szállítási díj, idő, kuponok, stb.)
-
-  ## B. Felmérés eredmények (összegzés)
-
-  - Összes válasz: 25
-  - Több mint 50% igényelte a következő funkciókat: legolcsóbb ajánlat kiemelése, szállítási idő figyelembevétele, kedvezmények összehasonlítása, felhasználói értékelések és kedvenc étterem hozzáadása.
-
-  ## C. SQL minták és konfiguráció
-
-  Példa CREATE TABLE minták és `.env.example` konfiguráció a fejlesztéshez a repositoryban található.
-
-  ## D. ER-diagram
-
-  Az ER-diagram forrása: `DOCS/szakdolgozat/er_diagram.dot`. SVG/PNG generálását és beágyazását kérésre elvégzem.
-
-  ---
-
-  # 8. Köszönetnyilvánítás
-
-  Szeretném kifejezni őszinte köszönetemet Major Sándor Roland témavezetőmnek (tanársegéd), aki heti rendszerességgel nyújtott szakmai tanácsokat, iránymutatást és részletes code review-kat. Munkája nagyban hozzájárult a projekt sikeréhez.
-
-  Köszönettel tartozom barátaimnak és családomnak, akik részt vettek a tesztelésben, ötletekkel segítettek és erkölcsi támogatást nyújtottak a projekt megvalósítása során.
-
-  ---
-
-  *Megjegyzés a formai követelményekről:* a végső leadás előtt a Markdown dokumentumot Word/LibreOffice formátumba kell konvertálni, a margók legyenek: bal 3 cm, jobb 2 cm, felső 3 cm, alsó 3 cm; betű: Times New Roman 12 pt; sortávolság: 1.5. A plágium-nyilatkozatot a NEPTUN rendszeren kell leadni, ezért azt a dolgozatban nem szerepeltetem.
+        return None
+    text = text.lower()
+    # számok kivonása
+    m = re.search(r"(\d+)(?:\D+(\d+))?", text)
+    if not m:
+        return None
+    minutes = int(m.group(1))
+    # ha óra szerepel
+    if 'óra' in text or 'óra' in text:
+        # egyszerűsített: ha "1 óra 20 perc" -> 80
+        parts = re.findall(r"(\d+)", text)
+        if len(parts) >= 2:
+            hours = int(parts[0])
             mins = int(parts[1])
             return hours*60 + mins
     return minutes

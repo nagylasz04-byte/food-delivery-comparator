@@ -1,0 +1,1290 @@
+fésüld össze ezt : "CÍMLAP
+
+(maradhat, ahogy írtad)
+Debreceni Egyetem
+Informatikai Kar
+Programozás és Alkalmazások Tanszék
+
+SZAKDOLGOZAT
+
+Food Delivery Comparator — többplatformos étel-összehasonlító rendszer
+
+Készítette:
+Nagy László
+Programtervező informatikus BSc szakos hallgató
+Neptun-kód: FY3VII
+
+Témavezető:
+Major Sándor Roland
+tanársegéd
+
+Debrecen, 2025
+
+TARTALOMJEGYZÉK
+
+Bevezetés
+ 1.1. Miért ezt a témát választottam?
+ 1.2. Relevancia és célkitűzések
+ 1.3. Mit sikerült megvalósítani?
+ 1.4. A dolgozat felépítése
+
+Tárgyalási rész
+ 2.1. Motiváció, célkitűzések és követelmények
+  2.1.1. Funkcionális célok
+  2.1.2. Nem funkcionális követelmények
+  2.1.3. Célcsoport és használati szcenáriók
+ 2.2. Irodalmi és technológiai áttekintés
+  2.2.1. Web-scraping módszerek
+  2.2.2. Döntéstámogató és ár-összehasonlító rendszerek
+  2.2.3. Webes architektúrák (MVC, rétegzett architektúra)
+ 2.3. Rendszerarchitektúra és komponensek
+  2.3.1. Háromrétegű logikai felépítés
+  2.3.2. Moduláris Django alkalmazások
+  2.3.3. Adatfolyam a scraping-től a felhasználói felületig
+ 2.4. Adatmodell és adatbázis
+  2.4.1. Főbb táblák ismertetése
+  2.4.2. Normalizációs szempontok
+  2.4.3. ER-diagram és kapcsolatok
+  2.4.4. Indexelés és teljesítmény
+ 2.5. Scraper-ek és import pipeline
+  2.5.1. Statikus scraping – Wolt
+  2.5.2. Dinamikus scraping – Foodora (Playwright)
+  2.5.3. Szállítási idő normalizálása
+  2.5.4. Import pipeline – idempotens feltöltés
+  2.5.5. Hibatűrés, logolás és újrafuttathatóság
+ 2.6. Backend (Django) megvalósítás
+  2.6.1. Projektstruktúra és fejlesztési környezet
+  2.6.2. Ajánlatok összköltségének számítása
+  2.6.3. Nézetek és URL-konfiguráció
+  2.6.4. Felhasználói autentikáció és session-kezelés
+ 2.7. Frontend és felhasználói felület
+  2.7.1. Felhasználói nézetek
+  2.7.2. Rendezés és interakciók
+  2.7.3. Design, reszponzivitás és használhatóság
+  2.7.4. UX szempontok és kérdőív visszajelzései
+ 2.8. Tesztelés, teljesítmény és mérőszámok
+  2.8.1. Manuális tesztelés
+  2.8.2. Unit tesztek és automatizálás
+  2.8.3. Teljesítményvizsgálat és skálázhatóság
+ 2.9. Biztonság és jogosultságkezelés
+  2.9.1. Django beépített jogosultságkezelése
+  2.9.2. Adattulajdon és hozzáférés-szabályozás
+  2.9.3. Adatvédelem, etikai kérdések és scraping-jog
+ 2.10. Limitációk és kockázatok
+ 2.11. Összehasonlítás létező rendszerekkel
+
+Összefoglalás és személyes reflexió
+ 3.1. A kitűzött célok teljesülése
+ 3.2. Szakmai és személyes tanulási eredmények
+ 3.3. További fejlesztési irányok
+
+Irodalomjegyzék
+
+Függelék
+
+Köszönetnyilvánítás
+
+(A végleges változatban a fejezetcímek mellé oldalszámokat kell írni.)
+
+1. BEVEZETÉS
+1.1. Miért ezt a témát választottam?
+
+(maradhat a meglévő szöveged, kiegészítve)
+
+Az elmúlt években a mobil- és webalapú ételrendelő szolgáltatások (például Wolt, Foodora) mind nemzetközi, mind hazai szinten rendkívül elterjedtté váltak. Egy átlagos felhasználó számára ma már természetes, hogy néhány kattintással házhoz rendelhet bármilyen ételt; ugyanakkor sokszor nehezen átlátható, hogy valójában mennyibe kerül ugyanaz az étel különböző platformokon, ha beleszámítjuk:
+
+az alapárat,
+
+a platform- és étterem-specifikus rejtett költségeket (szállítás, csomagolás, egyéb díjak),
+
+valamint a várható szállítási időt.
+
+Saját felhasználói tapasztalataim alapján azt láttam, hogy ugyanaz az étel, ugyanabban a városban, rövid időn belül akár több száz forintos eltéréssel is megjelenhet a különböző alkalmazásokban. Emellett a rejtett költségek (szállítás, csomagolás, „platform fee”) gyakran csak a rendelés vége felé, vagy kevésbé átlátható módon jelennek meg. Ez felveti a kérdést: hogyan lehetne ezeket az ajánlatokat egy helyen, egységes szempontrendszer szerint összehasonlítani?
+
+Ez a gyakorlati probléma jól illeszkedik egy programtervező informatikus szakdolgozatához, mert egyszerre igényel:
+
+web-scrapinget és adattisztítást,
+
+adatmodell és adatbázis tervezést,
+
+backend–frontend integrációt,
+
+valamint felhasználó-központú UI-t.
+
+A szakdolgozat témájának választásakor tudatos célom volt, hogy olyan projektet valósítsak meg, amely teljes fejlesztési folyamatot lefed: az adatgyűjtéstől az adatok tárolásán át a megjelenítésig, és közben bemutatja a Django keretrendszer, az ORM, a scraping eszközök és a webes architektúra alapjainak elsajátítását.
+
+Fontos kiemelni, hogy a webfejlesztés, a Django és az SQLite adatbázis használata, valamint a Playwright-alapú scraping a projekt elején teljesen új technológiák voltak számomra; gyakorlatilag a nulláról tanultam meg őket a szakdolgozat keretében. Ez a helyzet egyszerre jelentett kihívást és lehetőséget: a projekt során végig kellett gondolni, hogyan lehet gyorsan, de mégis strukturáltan felépíteni egy olyan rendszert, amely legalább demonstrációs szinten közelít a valós, ipari használatú rendszerekhez.
+
+1.2. Relevancia és célkitűzések
+
+A dolgozat gyakorlati és technikai célokat egyaránt szolgál.
+
+Gyakorlati célok:
+
+Egy olyan webalkalmazás prototípusának elkészítése, amely képes különböző ételrendelő platformok ajánlatainak összehasonlítására.
+
+A felhasználók egy adott ételhez tartozó ajánlatokat egy helyen, átlátható módon láthatják, beleértve:
+
+az alapárat,
+
+a kapcsolódó költségeket (szállítás, csomagolás, egyéb díjak),
+
+a becsült szállítási időt,
+
+a felhasználói értékeléseket (ha rendelkezésre állnak).
+
+A rendszer célja, hogy a felhasználói döntést költség-átláthatósággal és időbeli információval támogassa, ezáltal csökkentse az impulzív, átgondolatlan választások arányát.
+
+Technikai / tudományos célok:
+
+A web-scraping különböző megközelítéseinek (statikus HTML parsing, headless böngésző, beágyazott JSON) bemutatása és összehasonlítása.
+
+Az adatnormalizáció és az idempotens import megvalósítása Django ORM segítségével.
+
+Egy olyan adatmodell kidolgozása, amely rugalmasan kezeli:
+
+az ételeket,
+
+az éttermeket,
+
+az ajánlatokat és költségeket,
+
+a felhasználói mentéseket.
+
+A backend–frontend integráció gyakorlati bemutatása: hogyan jut el a scraper által kinyert adat a felhasználó böngészőjéig.
+
+Az ORM-ben rejlő lehetőségek (annotációk, aggregációk, Subquery, OuterRef, Coalesce) bemutatása konkrét, működő példán keresztül.
+
+A dolgozat középpontjában tehát nemcsak az alkalmazás funkcionalitása áll, hanem a módszertan is: hogyan lehet egy valós, gyakorlati problémát végigvinni a tervezéstől a megvalósításig modern webes technológiákkal.
+
+1.3. Mit sikerült megvalósítani?
+
+(maradhat, kis bővítésekkel)
+
+A szakdolgozat keretében az alábbi, kézzel fogható eredmények születtek:
+
+Egy Django-alapú webalkalmazás („Food Delivery Comparator”), amely:
+
+kezeli az ételeket, éttermeket, platformokat és költségeket,
+
+lekérdezi és összesíti az ajánlatokat egy adott ételre,
+
+kiszámolja az összesített árat (alapár + rejtett költségek),
+
+támogatja a felhasználói mentéseket („kedvenc ételek”).
+
+Egy scraper pipeline, amely:
+
+statikus HTML-ből (beágyazott JSON) és
+
+dinamikusan generált adatokból (Playwright segítségével) nyer ki adatszerkezeteket,
+
+azokat JSON formátumba menti.
+
+Egy idempotens importer parancs (python manage.py import_scraped), amely a data/*.extracted.json fájlok alapján tölti fel (vagy frissíti) a Django modelleket.
+
+Egy olyan frontend prototípus, amely:
+
+egyszerű táblázatos nézetben jeleníti meg az ajánlatokat,
+
+támogatja az ár és szállítási idő szerinti rendezést,
+
+lehetővé teszi a felhasználói mentéseket.
+
+A projekt forráskódja GitHub-on érhető el:
+
+GitHub repo:
+https://github.com/nagylasz04-byte/food-delivery-comparator
+
+A további fejezetekben részletesen bemutatom a rendszer architektúráját, adatmodelljét, a scraping és import folyamatot, a backend megoldásait, valamint a frontend használatát.
+
+1.4. A dolgozat felépítése
+
+Az 1. fejezet a bevezetést, motivációt és célkitűzéseket ismerteti. A 2. fejezet alkotja a dolgozat tárgyalási részét: itt kerül bemutatásra az irodalmi áttekintés, a választott technológiák, a rendszer architektúrája, adatmodellje, valamint a scraping és import pipeline részletei. Ugyancsak ebben a fejezetben szerepel a backend és frontend megvalósítás ismertetése, a tesztelési stratégiák, a teljesítményvizsgálat, a biztonsági szempontok, illetve a rendszer limitációinak elemzése és a létező megoldásokkal való összehasonlítás.
+
+A 3. fejezet összefoglalja a szakdolgozat fő eredményeit, bemutatja a munka során szerzett tapasztalatokat és a személyes tanulási folyamatot, valamint javaslatot tesz további fejlesztési irányokra.
+
+A 4. fejezet az irodalomjegyzéket tartalmazza. Az 5. fejezet Függelékeiben találhatók a részletes SQL-lekérdezések, ER-diagram, kódrészletek, valamint a kérdőív leírása és eredményei. A 6. fejezet a köszönetnyilvánítást tartalmazza.
+
+2. TÁRGYALÁSI RÉSZ
+2.1. Motiváció, célkitűzések és követelmények
+2.1.1. Funkcionális célok
+
+(maradhat az eddigi rész, kis bővítéssel)
+
+A rendszer főbb funkcionális követelményei:
+
+Ételek és éttermek kezelése
+A rendszer tárolja az egyes ételek (név, leírás, kategória, kép) és éttermek (név, cím, platform) adatait. Az entitásokhoz kapcsolódó információk a későbbi bővítés érdekében rugalmasan bővíthetők (például konyhatípus, város, nyitvatartás).
+
+Ajánlatok összehasonlítása
+Egy kiválasztott ételhez tartozó ajánlatok (árak, szállítási idők, felhasználói értékelések, promóciók) több platformról egységes nézetben jelenjenek meg. Az ajánlatok struktúrája olyan, hogy később akár más országok vagy valuták adatai is integrálhatók legyenek.
+
+Rejtett költségek kezelése
+A rendszer külön táblában tárolja az olyan költségeket, mint szállítási díj, csomagolási díj, borravaló vagy egyéb költség, és ezeket az ajánlathoz aggregálja. Így transzparenssé válik, hogy az egyes platformok milyen módon építik fel az árakat.
+
+Mentési funkció
+A felhasználó bejelentkezés után elmentheti a kedvenc ételeit, és ezeket külön listában megtekintheti. Ez a funkció egyszerű, de jól demonstrálja a user-specifikus adatkezelést.
+
+Rendezés és szűrés
+Az ajánlatok rendezhetők legyenek például összár szerint növekvő vagy szállítási idő szerint. A későbbiekben további szűrési lehetőségek is könnyen beépíthetők (például árintervallum, csak akciós ajánlatok).
+
+2.1.2. Nem funkcionális követelmények
+
+Átláthatóság:
+A felhasználó néhány pillantással meg tudja állapítani, melyik ajánlat a legolcsóbb vagy leggyorsabb. A táblázatos nézet, a kiemelt összár és a szállítási idő ikonok mind ezt szolgálják.
+
+Idempotens import:
+Ugyanazt a scraping eredményt többször importálva sem keletkezhetnek duplikált rekordok. Az update_or_create használata, valamint a unique_together constraint-ek ezt garantálják.
+
+Karbantarthatóság:
+A kód jól tagolt, a modellek, nézetek és sablonok egyértelműen elkülönülnek. A Django alkalmazások moduláris szétválasztása (catalog, compare, billing, users) megkönnyíti a későbbi módosításokat.
+
+Bővíthetőség:
+Később új platformok, új költségtípusok vagy új frontend funkciók (pl. SPA, REST API) beépíthetők legyenek. Az adatmodell erre felkészített, például a platform mező szöveges, nem enum, így új értékek könnyen hozzáadhatók.
+
+Teljesítmény:
+A rendszernek kisebb adatmennyiség mellett is gyors reakcióidőt kell biztosítania. A Django ORM által biztosított lazy evaluation, valamint az aggregációk optimalizálása segít ebben.
+
+Biztonság:
+A felhasználók adatait biztonságosan kell kezelni. A Django beépített authentikációs és jogosultsági modelljére támaszkodva jelszavak nem kerülnek plain text formában tárolásra.
+
+2.1.3. Célcsoport és használati szcenáriók
+
+A rendszer elsődleges célcsoportja:
+
+olyan városi felhasználók, akik rendszeresen rendelnek ételt online,
+
+akik árérzékenyek, és szeretnék minimalizálni a rejtett költségeket,
+
+akik több platformot is használnak (például Wolt és Foodora), és szívesen összehasonlítanák az ajánlatokat.
+
+Tipikus használati szcenárió:
+
+A felhasználó kiválaszt egy ételt (pl. „Margherita pizza”).
+
+A rendszer megjeleníti a különböző platformokon és éttermekben elérhető ajánlatokat.
+
+A felhasználó rendezést alkalmaz (például „összár szerint növekvő”).
+
+A felhasználó elmenti a kedvenc ételt, vagy rákattint az adott platform linkjére, és ott befejezi a rendelést.
+
+2.2. Irodalmi és technológiai áttekintés
+
+(a meglévő részt kibővítem alfejezetekkel)
+
+A szakdolgozat megvalósításához több technológiát és dokumentációt kellett tanulmányoznom. A legfontosabbak:
+
+Python 3 – általános célú programozási nyelv, amelyre a teljes backend épül. [1]
+
+Django – magas szintű Python web framework, beépített admin felülettel és ORM-mel. [2]
+
+SQLite – könnyűsúlyú relációs adatbázis, amely fejlesztési környezetben ideális választás. [4]
+
+Playwright for Python – modern, több böngészőt támogató automatizált tesztelési és scraping keretrendszer. [3]
+
+Beautiful Soup – HTML/XML feldolgozó könyvtár, egyszerű struktúrák kinyerésére. [6]
+
+Requests – HTTP klienskönyvtár (a projektben elsősorban a dokumentáció és példák kapcsán jelenik meg). [5]
+
+2.2.1. Web-scraping módszerek
+
+A web-scraping szakirodalmában különösen fontos kérdés az adatmegbízhatóság és az oldalstruktúrák változására való érzékenység. A szakdolgozatban két fő megközelítést alkalmaztam:
+
+Statikus parsing: amikor az oldal HTML kódjában közvetlenül elérhető, beágyazott JSON struktúra található, a scraping egyszerűbb: egy HTTP-kérés, HTML-parsing, a megfelelő <script> tag azonosítása és a JSON kinyerése elegendő. Ez gyors és erőforrás-takarékos.
+
+Dinamikus scraping headless böngészővel: modern, JavaScript-alapú weboldalak esetén a tartalom jelentős része csak futás közben kerül betöltésre. Ilyenkor szükség van egy olyan megoldásra, amely ténylegesen „lefuttatja” az oldalt. Ezt a szerepet tölti be a Playwright: programozott módon indít böngészőt, betölti az oldalt, kivárja a JavaScript futását, majd kiolvassa az eredményül létrejött objektumokat.
+
+Mindkét megközelítésnek vannak előnyei és hátrányai. A headless böngésző robusztusabb a dinamikus oldalakkal szemben, viszont erőforrás-igényesebb és bonyolultabb beállítani. A statikus parsing gyors, de törékeny: egy kisebb HTML-struktúra változás is tönkreteheti a scrapinget.
+
+2.2.2. Döntéstámogató és ár-összehasonlító rendszerek
+
+A felhasználói döntéstámogatás és ár-összehasonlító rendszerek (price comparison engines) szakirodalma alapján a felhasználók fő szempontjai:
+
+végső ár,
+
+szállítási idő,
+
+kedvezmények és kuponok,
+
+más felhasználók értékelései.
+
+A szakdolgozathoz készített kérdőív (lásd Függelék D) is ezt támasztja alá: a kitöltők döntő többsége számára a végső ár és a szállítási idő volt a legfontosabb, míg az értékelések és promóciók másodlagos, de még mindig releváns tényezőként jelentek meg.
+
+A közismert ár-összehasonlító oldalak (például elektronikai termékek vagy repülőjegyek esetén) már régóta alkalmazzák ezeket a szempontokat, de az ételrendelés területén kevésbé elterjedt a többplatformos összehasonlítás.
+
+2.2.3. Webes architektúrák (MVC, rétegzett architektúra)
+
+A dolgozatban megvalósított rendszer backendje klasszikus MVC (Model–View–Controller) jellegű architektúrát követ, amelyre a Django saját értelmezése – Model–Template–View – épül. A logikai felosztás a következő:
+
+Model: a relációs adatbázisra támaszkodó Python osztályok (Etel, Etterem, EtteremEtelInfo stb.), amelyek az üzleti entitásokat reprezentálják.
+
+View: a HTTP-kérések kezeléséért felelős réteg, amely összeállítja a kontextust a sablonok számára.
+
+Template: a HTML-oldalak generálása a kapott adatok alapján.
+
+Emellett a rendszer rétegzett architektúra szerint is értelmezhető: különválik az adatgyűjtés (scraper-ek), az adatfeldolgozás (import pipeline), az üzleti logika (ajánlat-összesítés, költségszámítás), és a prezentáció (felhasználói felület).
+
+2.3. Rendszerarchitektúra és komponensek
+
+(a meglévő 2.3-at kibővítve)
+
+A rendszer három fő rétegből épül fel:
+
+Adatgyűjtés (scraper-ek)
+
+statikus HTML és beágyazott JSON feldolgozása,
+
+dinamikus, JavaScript által generált adatok kinyerése headless böngészővel.
+
+Adatfeldolgozás (importer)
+
+JSON payloadok normalizálása,
+
+idempotens feltöltés a Django ORM-en keresztül.
+
+Megjelenítés (backend + sablonok)
+
+Django modellek, nézetek és sablonok,
+
+ajánlatok összesítése és rendezése,
+
+felhasználói felület.
+
+2.3.1. Moduláris felépítés
+
+A Django projekt modulszinten a következő alkalmazásokból áll:
+
+catalog – ételek és éttermek modellei, import parancs, admin konfiguráció,
+
+compare – ajánlatok és mentések, összehasonlító logika,
+
+billing – költségek kezelése (szállítás, csomagolás stb.),
+
+users – egyedi felhasználó modell és a hozzá kapcsolódó logika,
+
+(esetleg) registration – regisztráció és bejelentkezés.
+
+A scraper-ek külön scripts/ könyvtárban találhatók, a demo források pedig a data/ mappában. Ez a szétválasztás jól tükrözi a felelősségi köröket: a Django appok a futó webalkalmazás részei, míg a scripts mappa inkább offline, batch jellegű feladatokra szolgál.
+
+2.3.2. Adatfolyam
+
+Az adatfolyam a következő lépésekből áll:
+
+A scraper szkriptek (pl. scrape_wolt.py, scrape_foodora_browser.py) feldolgozzák a forrás HTML-eket, és létrehozzák a *.extracted.json fájlokat a data/ könyvtárban.
+
+Az import parancs futtatása:
+
+python manage.py import_scraped
+
+
+Az importer a JSON payloadokat felolvassa, normalizálja, és frissíti a modelleket (Etel, Etterem, EtteremEtelInfo, EtteremKoltseg).
+
+A felhasználó a böngészőben megnyitja az alkalmazást (pl. http://127.0.0.1:8000/termek/<id>/), ahol a Django view az adatbázis alapján összeállítja és annotálja az ajánlatokat.
+
+A sablon a rendezési opciók figyelembevételével jeleníti meg az eredményt.
+
+Ez az adatfolyam jól szemlélteti, hogy a scraping és a webalkalmazás lazán csatoltak: a scraper önállóan is futtatható, az alkalmazás pedig csak az adatbázisra támaszkodik, függetlenül attól, milyen forrásból érkeztek az adatok.
+
+2.4. Adatmodell és adatbázis
+
+(a meglévő részt bővítem)
+
+Az adatmodell relációs adatbázisra épül (SQLite), normalizált szerkezetben. A főbb entitások:
+
+Felhasznalo (users.Felhasznalo)
+
+Etel (catalog.Etel)
+
+Etterem (catalog.Etterem)
+
+EtteremEtelInfo (compare.EtteremEtelInfo)
+
+EtteremKoltseg (billing.EtteremKoltseg)
+
+Mentes (compare.Mentes)
+
+2.4.1. Főbb táblák (rövid leírás)
+
+(megtartva az általad leírt mezőket, mellé magyarázó mondatokkal)
+
+FELHASZNÁLÓ (users.Felhasznalo)
+
+id – primer kulcs
+
+nev – felhasználó teljes neve
+
+username, password, email – az AbstractUser mezői
+
+kedvenc_etterem – opcionális, FK → Etterem
+
+A felhasználó modell testreszabása lehetővé teszi, hogy később akár további mezőket (például alapértelmezett város, preferált konyhatípus) is rögzítsünk.
+
+ÉTEL (catalog.Etel)
+
+id – primer kulcs
+
+nev – az étel neve
+
+leiras – szöveges leírás
+
+kategoria – kategória (pl. pizza, burger)
+
+kep_url – az étel képének URL-je
+
+ÉTTEREM (catalog.Etterem)
+
+id – primer kulcs
+
+nev – étterem neve
+
+cim – címe
+
+platform – platform azonosító (pl. wolt, foodora)
+
+platform_logo_url, platform_url – vizuális és hivatkozási adatok
+
+ÉTTEREM–ÉTEL INFORMÁCIÓ (compare.EtteremEtelInfo)
+
+id – primer kulcs
+
+etel – FK → Etel
+
+etterem – FK → Etterem
+
+platform – redundáns, de lekérdezés szempontjából hasznos
+
+ar – alapár
+
+szallitas_ido – DurationField vagy normalizált perc érték
+
+felhaszn_ertekelesek – átlagos értékelés
+
+promocio – promóció szövege
+
+Constraint: unique_together = ("etel", "etterem", "platform") – ugyanarra az étel–étterem–platform kombinációra csak egy rekord létezhet.
+
+ÉTTEREM_KÖLTSÉG (billing.EtteremKoltseg)
+
+id – primer kulcs
+
+etterem – FK → Etterem (opcionális)
+
+etel – FK → Etel (opcionális)
+
+platform – platform (opcionális, platform-szintű költség)
+
+koltseg_tipus – pl. szallitas, csomagolas, borravalo, egyeb
+
+osszeg – költség összege (HUF)
+
+Ez a táblázat teszi lehetővé, hogy a költségeket rugalmasan, több szinten (platform-, étterem- vagy akár étel-szint) tároljuk.
+
+MENTÉS (compare.Mentes)
+
+id – primer kulcs
+
+felhasznalo – FK → Felhasznalo
+
+etel – FK → Etel
+
+letrehozva – időbélyeg
+
+Constraint: unique_together = ("felhasznalo", "etel") – egy felhasználó egy ételt csak egyszer menthet.
+
+2.4.2. Normalizációs szempontok
+
+Az adatmodell tervezése során törekedtem a legalább harmadik normálforma elérésére:
+
+A felhasználók, ételek, éttermek, ajánlatok és költségek külön táblákban szerepelnek.
+
+A többször ismétlődő adatok (pl. platform neve, étterem címe) csak egy helyen kerülnek tárolásra.
+
+A kapcsolatok (pl. étel–étterem, felhasználó–mentés) relációs táblákon keresztül valósulnak meg.
+
+Ennek eredményeként az adatbázis jól karbantartható, a rekordok konzisztenciája biztosított, és a későbbi bővítések is könnyebben implementálhatók.
+
+2.4.3. ER-diagram (szövegesen)
+
+(megtartva a már leírt kapcsolatokat)
+
+Felhasznalo 1:N Mentes
+
+Etel 1:N EtteremEtelInfo
+
+Etterem 1:N EtteremEtelInfo
+
+Etterem 1:N EtteremKoltseg
+
+Etel 1:N EtteremKoltseg (opcionális)
+
+Etel 1:N Mentes
+
+A részletes, grafikus ER-diagram a Függelékben található (Graphviz DOT alapján generált ábra).
+
+2.4.4. Indexelés és teljesítmény
+
+A gyakori lekérdezések (például egy adott étel ajánlatainak listázása) hatékonysága érdekében érdemes indexeket létrehozni az alábbi mezőkön:
+
+EtteremEtelInfo.etel, EtteremEtelInfo.etterem, EtteremEtelInfo.platform,
+
+EtteremKoltseg.etterem, EtteremKoltseg.platform,
+
+Mentes.felhasznalo, Mentes.etel.
+
+Fejlesztési környezetben az SQLite automatikus indexelése elegendő volt, de production környezetben (PostgreSQL) célszerű lenne kifejezetten indexelni ezeket a mezőket.
+
+2.5. Scraper-ek és import pipeline
+
+(a meglévő 2.5-öt kibővítem: hibatűrés, logolás)
+
+2.5.1. Statikus scraping – Wolt
+
+(mehet az általad leírt folyamat + 1–2 bekezdés arról, hogy miért jó az embedded JSON stb.)
+
+2.5.2. Dinamikus scraping – Foodora (Playwright)
+
+(mehet a már leírt folyamat, plusz: verziókezelés, fallback logika, error handling)
+
+2.5.3. Szállítási idő normalizálása
+
+(mehet a már bemutatott parse_delivery függvény, plusz magyarázat: miért az alsó határ, milyen edge case-ek vannak)
+
+2.5.4. Import pipeline – idempotens feltöltés
+
+(mehet az import_offers kódrészlet, amit már leírtál, plusz: tranzakciók és atomic blokkok használata, ha szeretnéd még színezni)
+
+2.5.5. Hibatűrés, logolás és újrafuttathatóság
+
+Az import folyamat szempontjából kulcsfontosságú, hogy a rendszer hibatűrő legyen:
+
+ha egy rekord importálása közben hiba keletkezik (például hiányzó mező, váratlan formátum), az ne állítsa meg az egész importot;
+
+a hibákat logolni kell, hogy később elemezhetők legyenek;
+
+az import parancs újrafuttatható legyen anélkül, hogy duplikációt okozna.
+
+A Django transaction.atomic() kontextuskezelője lehetőséget adna arra, hogy a teljes importot egy tranzakcióban futtassuk, de jelen projektben egyszerűbb megközelítést alkalmaztam: rekord-szinten próbálkozom, és hiba esetén a problémás rekordot átugrom, a hibát naplózom.
+
+2.6. Backend (Django) megvalósítás
+2.6.1. Technológiák és projektstruktúra
+
+(mehet az általad leírt venv + migrate + runserver, plusz: settings modulok, settings.py-ban beállított appok, INSTALLED_APPS, MIDDLEWARE stb. rövid említése)
+
+2.6.2. Ajánlatok összköltségének számítása
+
+(a meglévő Subquery-s rész maradhat, kiegészítve: miért kell két Subquery, hogyan működik a Coalesce, miért jó így csinálni és nem Pythonban kézzel összeadni)
+
+2.6.3. Nézet (View) – ajánlatok megjelenítése
+
+(a TemplateView-es rész maradhat, bővítés: URL-diszpécser, urls.py részlete, context változók, hibakezelés ha nincs ilyen etel_id)
+
+2.6.4. Felhasználói autentikáció és session-kezelés
+
+A mentés funkció és a felhasználó-specifikus nézetek megvalósításához a Django beépített autentikációs rendszerét használom. A legfontosabb elemek:
+
+django.contrib.auth – bejelentkezés, kijelentkezés, jelszókezelés;
+
+LoginRequiredMixin – olyan nézetek esetén, ahol csak bejelentkezett felhasználó férhet hozzá (pl. mentett ételek listája);
+
+session-kezelés – a Django automatikusan kezeli a session cookie-kat, így a felhasználó bejelentkezett állapota több kérésen keresztül fennmarad.
+
+2.7. Frontend és felhasználói felület
+2.7.1. Felhasználói nézetek
+
+(marad a Termékoldal, Mentett ételek leírás, kiegészítve pl. home page, egyszerű keresés stb. ha van)
+
+2.7.2. Rendezés és interakciók
+
+(maradhat, hogy query paraméterekkel rendez, plusz: jelölve a nyilak, melyik oszlop aktív, CSS-sel kiemelve)
+
+2.7.3. Design, reszponzivitás és használhatóság
+
+Bár a projekt fő fókusza a backend és az adatpipeline, a frontend kialakításánál is törekedtem a használhatóságra:
+
+a táblázat mobilnézetben is olvasható;
+
+a legfontosabb információk (összár, szállítási idő) a bal oldalhoz közelebb, vizuálisan kiemelve jelennek meg;
+
+egyszerű, világos színvilágot alkalmaztam;
+
+ikonok jelzik a rendezés irányát (növekvő/csökkenő).
+
+2.7.4. UX szempontok és kérdőív visszajelzései
+
+A Függelékben található kérdőív célja az volt, hogy feltérképezze:
+
+milyen platformokat használnak a kitöltők (Wolt, Foodora, NetPincér stb.);
+
+milyen szempontok alapján döntenek (ár, idő, értékelés);
+
+mennyire nyitottak egy összehasonlító rendszer használatára.
+
+A 25 válasz alapján:
+
+a legtöbben havonta több alkalommal rendelnek ételt;
+
+a döntésben a végső ár és a szállítási idő volt a legfontosabb;
+
+a kitöltők jelentős része használna olyan rendszert, amely egy helyen mutatja az összes platform ajánlatát.
+
+Ez megerősítette, hogy a szakdolgozat témája valódi felhasználói igényre reflektál.
+
+2.8. Tesztelés, teljesítmény és mérőszámok
+2.8.1. Manuális tesztelés
+
+(maradhat, amit írtál, plusz konkrét példák: pl. „tesztadatok a wolt_demo.json-ból”)
+
+2.8.2. Unit tesztek és automatizálás
+
+A legkézenfekvőbb unit teszt célpont a parse_delivery függvény. Emellett tesztek készíthetők az import logikára (pl. duplikátumok elkerülése) és a költség aggregációra is. A Django TestCase osztálya lehetővé teszi, hogy izolált tesztadatbázisban futtassuk a teszteket.
+
+2.8.3. Teljesítményvizsgálat és skálázhatóság
+
+Fejlesztési környezetben a felhasznált adatmennyiség relatíve alacsony volt (néhány tucat étel, étterem és ajánlat). Ennek ellenére érdemes átgondolni a skálázhatósági kérdéseket:
+
+Adatbázis: nagyobb adatkészlet esetén javasolt PostgreSQL-re átállni, indexelni a gyakran használt mezőket.
+
+Cache: a gyakran lekért termékoldalak (/termek/<id>/) esetén érdemes lenne cache-réteget bevezetni (pl. Redis), amely csökkenti az adatbázis terhelését.
+
+Scraping: a scraping folyamat időigényes lehet nagyobb mennyiségű étterem esetén, ezért később ütemezett (cron jellegű) futtatás és párhuzamosítás lenne javasolt.
+
+2.9. Biztonság és jogosultságkezelés
+
+(a meglévő 2.9-et kibővítem)
+
+2.9.1. Django beépített jogosultságai
+
+(maradhat a is_staff, is_superuser stb.)
+
+2.9.2. Adattulajdon és jogosultságok
+
+(maradhat a delete_mentes példa)
+
+2.9.3. Adatvédelem és etikai szempontok
+
+A projekt nem tárol érzékeny személyes adatokat. Ugyanakkor, mivel a scraping külső oldalak tartalmait dolgozza fel, etikai és jogi kérdések is felmerülnek:
+
+tiszteletben kell tartani az adott oldal felhasználási feltételeit;
+
+célszerű a scrapinget a lehető legkisebb terheléssel végezni (rate limiting);
+
+a jelen projektben csak demo HTML-fájlokra épülő scraping történik, így nem érint éles szolgáltatásokat.
+
+2.10. Limitációk és kockázatok
+
+A rendszer jelenlegi verziójának több korlátja is van:
+
+csak néhány demo forrásfájlt dolgoz fel, nem integrálódik valós, élő API-khoz;
+
+az árak és promóciók nem real-time módon frissülnek;
+
+nincs kialakítva teljeskörű monitoring- és hibajelentő rendszer;
+
+a front-end egyszerű, nem SPA jellegű, így a felhasználói élmény nem ér fel a piaci alkalmazásokkal.
+
+Ezek a limitációk azonban nem csökkentik a szakdolgozat fő üzenetét: a demonstrációs célú rendszer megmutatja az adatpipeline és a webes architektúra lényegi elemeit.
+
+2.11. Összehasonlítás létező rendszerekkel
+
+A piacon jelenleg kevés olyan alkalmazás érhető el, amely kifejezetten több ételrendelő platform ajánlatait hasonlítja össze. Jellemzőbbek az egy-egy platformra koncentráló megoldások.
+
+A dolgozatban bemutatott rendszer abban tér el ezektől, hogy:
+
+a hangsúly az összehasonlításon, nem pedig a rendelés lebonyolításán van;
+
+transzparensen mutatja a rejtett költségeket;
+
+rugalmas adatmodellt biztosít új platformok integrálásához.
+
+3. ÖSSZEFOGLALÁS ÉS SZEMÉLYES REFLEXIÓ
+
+(a meglévő szöveged maradhat, plusz alfejezetek 3.1–3.3, kicsit jobban tagolva)
+
+3.1. A kitűzött célok teljesülése
+
+Itt leírhatod, hogy a gyakorlati és technikai célok közül melyek teljesültek, mi maradt prototípus szinten, és mit tartasz a legfontosabb eredménynek (pl. működő összehasonlító nézet, idempotens import).
+
+3.2. Szakmai és személyes tanulási eredmények
+
+új technológiák elsajátítása (Django, Playwright, ORM, web-scraping),
+
+gondolkodásmód-váltás: nem csak „kódolás”, hanem architektúra-tervezés,
+
+problémamegoldó képességek fejlődése (hibakeresés, logolás, edge case-ek kezelése).
+
+3.3. További fejlesztési irányok
+
+(amit már írtál: PostgreSQL, Redis, publikus API, SPA frontend, értesítések stb. – ezt szépen külön alfejezetként kiemelve)
+
+4. IRODALOMJEGYZÉK
+
+(maradhat, max. bővítheted még 2–3 szakirodalommal, ha keresel döntéstámogató rendszerről, UX-ről cikket)
+
+5. FÜGGELÉK
+
+(A, B, C, D – ahogy leírtad, itt részletezve)
+
+6. KÖSZÖNETNYILVÁNÍTÁS
+
+(maradhat az általad írt szöveg)" és ezt a szöveget: "CÍMLAP
+Debreceni Egyetem
+Informatikai Kar
+Programozás és Alkalmazások Tanszék
+SZAKDOLGOZAT
+Food Delivery Comparator — többplatformos étel-összehasonlító rendszer
+Készítette:
+Nagy László
+Programtervező informatikus BSc szakos hallgató
+Neptun-kód: FY3VII
+Témavezető:
+Major Sándor Roland
+tanársegéd
+Debrecen, 2025
+________________________________________
+TARTALOMJEGYZÉK
+1.	Bevezetés
+2.	Tárgyalási rész
+ 2.1. Motiváció, célkitűzések és követelmények
+ 2.2. Irodalmi és technológiai áttekintés
+ 2.3. Rendszerarchitektúra és komponensek
+ 2.4. Adatmodell és adatbázis
+ 2.5. Scraper-ek és import pipeline
+ 2.6. Backend (Django) megvalósítás
+ 2.7. Frontend és felhasználói felület
+ 2.8. Tesztelés, teljesítmény és mérőszámok
+ 2.9. Biztonság és jogosultságkezelés
+3.	Összefoglalás és személyes reflexió
+4.	Irodalomjegyzék
+5.	Függelék
+6.	Köszönetnyilvánítás
+(A végleges változatban a fejezetcímek mellé oldalszámokat kell írni.)
+________________________________________
+1. BEVEZETÉS
+1.1. Miért ezt a témát választottam?
+Az elmúlt években a mobil- és webalapú ételrendelő szolgáltatások (például Wolt, Foodora) mind nemzetközi, mind hazai szinten rendkívül elterjedtté váltak. Egy átlagos felhasználó számára ma már természetes, hogy néhány kattintással házhoz rendelhet bármilyen ételt; ugyanakkor sokszor nehezen átlátható, hogy valójában mennyibe kerül ugyanaz az étel különböző platformokon, ha beleszámítjuk:
+•	az alapárat,
+•	a platform- és étterem-specifikus rejtett költségeket (szállítás, csomagolás, egyéb díjak),
+•	valamint a várható szállítási időt.
+Saját felhasználói tapasztalataim alapján azt láttam, hogy ugyanaz az étel, ugyanabban a városban, rövid időn belül akár több száz forintos eltéréssel is megjelenhet a különböző alkalmazásokban. Emellett a rejtett költségek (szállítás, csomagolás, „platform fee”) gyakran csak a rendelés vége felé, vagy kevésbé átlátható módon jelennek meg. Ez felveti a kérdést: hogyan lehetne ezeket az ajánlatokat egy helyen, egységes szempontrendszer szerint összehasonlítani?
+Ez a gyakorlati probléma jól illeszkedik egy programtervező informatikus szakdolgozatához, mert egyszerre igényel:
+•	web-scrapinget és adattisztítást,
+•	adatmodell és adatbázis tervezést,
+•	backend–frontend integrációt,
+•	valamint felhasználó-központú UI-t.
+A szakdolgozat témájának választásakor tudatos célom volt, hogy olyan projektet valósítsak meg, amely teljes fejlesztési folyamatot lefed: az adatgyűjtéstől az adatok tárolásán át a megjelenítésig, és közben bemutatja a Django keretrendszer, az ORM, a scraping eszközök és a webes architektúra alapjainak elsajátítását.
+Fontos kiemelni, hogy a webfejlesztés, a Django és az SQLite adatbázis használata, valamint a Playwright-alapú scraping a projekt elején teljesen új technológiák voltak számomra; gyakorlatilag a nulláról tanultam meg őket a szakdolgozat keretében.
+1.2. Relevancia és célkitűzések
+A dolgozat gyakorlati és technikai célokat egyaránt szolgál.
+Gyakorlati cél:
+•	Egy olyan webalkalmazás prototípusának elkészítése, amely képes különböző ételrendelő platformok ajánlatainak összehasonlítására.
+•	A felhasználók egy adott ételhez tartozó ajánlatokat egy helyen, átlátható módon láthatják, beleértve:
+o	az alapárat,
+o	a kapcsolódó költségeket (szállítás, csomagolás, egyéb díjak),
+o	a becsült szállítási időt,
+o	a felhasználói értékeléseket (ha rendelkezésre állnak).
+•	A rendszer célja, hogy a felhasználói döntést költség-átláthatósággal és időbeli információval támogassa.
+Technikai / tudományos cél:
+•	A web-scraping különböző megközelítéseinek (statikus HTML parsing, headless böngésző, beágyazott JSON) bemutatása és összehasonlítása.
+•	Az adatnormalizáció és az idempotens import megvalósítása Django ORM segítségével.
+•	Egy olyan adatmodell kidolgozása, amely rugalmasan kezeli:
+o	az ételeket,
+o	az éttermeket,
+o	az ajánlatokat és költségeket,
+o	a felhasználói mentéseket.
+•	A backend–frontend integráció gyakorlati bemutatása: hogyan jut el a scraper által kinyert adat a felhasználó böngészőjéig.
+A dolgozat középpontjában tehát nemcsak az alkalmazás funkcionalitása áll, hanem a módszertan is: hogyan lehet egy valós, gyakorlati problémát végigvinni a tervezéstől a megvalósításig modern webes technológiákkal.
+1.3. Mit sikerült megvalósítani?
+A szakdolgozat keretében a következőket valósítottam meg:
+•	Egy Django-alapú webalkalmazást („Food Delivery Comparator”), amely:
+o	kezeli az ételeket, éttermeket, platformokat és költségeket,
+o	lekérdezi és összesíti az ajánlatokat egy adott ételre,
+o	kiszámolja az összesített árat (alapár + rejtett költségek),
+o	támogatja a felhasználói mentéseket („kedvenc ételek”).
+•	Egy scraper pipeline-t, amely:
+o	statikus HTML-ből (beágyazott JSON) és
+o	dinamikusan generált adatokból (Playwright segítségével) nyer ki adatszerkezeteket,
+o	azokat JSON formátumba menti.
+•	Egy idempotens importer parancsot (python manage.py import_scraped), amely a data/*.extracted.json fájlok alapján tölti fel (vagy frissíti) a Django modelleket.
+•	Egy olyan frontend prototípust, amely:
+o	egyszerű táblázatos nézetben jeleníti meg az ajánlatokat,
+o	támogatja az ár és szállítási idő szerinti rendezést,
+o	lehetővé teszi a felhasználói mentéseket.
+A projekt forráskódja GitHub-on érhető el:
+GitHub repo:
+https://github.com/nagylasz04-byte/food-delivery-comparator
+A további fejezetekben részletesen bemutatom a rendszer architektúráját, adatmodelljét, a scraping és import folyamatot, a backend megoldásait, valamint a frontend használatát.
+________________________________________
+2. TÁRGYALÁSI RÉSZ
+2.1. Motiváció, célkitűzések és követelmények
+2.1.1. Funkcionális célok
+A rendszer főbb funkcionális követelményei:
+•	Ételek és éttermek kezelése
+A rendszer tárolja az egyes ételek (név, leírás, kategória, kép) és éttermek (név, cím, platform) adatait.
+•	Ajánlatok összehasonlítása
+Egy kiválasztott ételhez tartozó ajánlatok (árak, szállítási idők, felhasználói értékelések, promóciók) több platformról egységes nézetben jelenjenek meg.
+•	Rejtett költségek kezelése
+A rendszer külön táblában tárolja az olyan költségeket, mint szállítási díj, csomagolási díj, borravaló vagy egyéb költség, és ezeket az ajánlathoz aggregálja.
+•	Mentési funkció
+A felhasználó bejelentkezés után elmentheti a kedvenc ételeit, és ezeket külön listában megtekintheti.
+•	Rendezés és szűrés
+Az ajánlatok rendezhetők legyenek például összár szerint növekvő vagy szállítási idő szerint.
+2.1.2. Nem funkcionális követelmények
+•	Átláthatóság: a felhasználó néhány pillantással meg tudja állapítani, melyik ajánlat a legolcsóbb vagy leggyorsabb.
+•	Idempotens import: ugyanazt a scraping eredményt többször importálva sem keletkezhetnek duplikált rekordok.
+•	Karbantarthatóság: a kód jól tagolt, a modellek, nézetek és sablonok egyértelműen elkülönülnek.
+•	Bővíthetőség: később új platformok, új költségtípusok vagy új front-end funkciók (pl. SPA, REST API) beépíthetők legyenek.
+________________________________________
+2.2. Irodalmi és technológiai áttekintés
+A szakdolgozat megvalósításához több technológiát és dokumentációt kellett tanulmányoznom. A legfontosabbak:
+•	Python 3 – általános célú programozási nyelv, amelyre a teljes backend épül. [1]
+•	Django – magas szintű Python web framework, beépített admin felülettel és ORM-mel. [2]
+•	SQLite – könnyűsúlyú relációs adatbázis, amely fejlesztési környezetben ideális választás. [4]
+•	Playwright for Python – modern, több böngészőt támogató automatizált tesztelési és scraping keretrendszer. [3]
+•	Beautiful Soup – HTML/XML feldolgozó könyvtár, egyszerű struktúrák kinyerésére. [6]
+•	Requests – HTTP klienskönyvtár (a projektben elsősorban a dokumentáció és példák kapcsán jelenik meg). [5]
+A web-scraping szakirodalmában különösen fontos kérdés az adatmegbízhatóság és az oldalstruktúrák változására való érzékenység. A headless böngészővel (Playwright) történő scraping robusztusabb a modern, JavaScript-alapú weboldalak esetén, viszont erőforrás-igényesebb is, míg a statikus DOM/JSON-parsing gyors és egyszerű, de sérülékeny a front-end változásaira.
+A felhasználói döntéstámogatás és ár-összehasonlító rendszerek (price comparison engines) szakirodalma alapján a felhasználók fő szempontjai:
+•	végső ár,
+•	szállítási idő,
+•	kedvezmények és kuponok,
+•	más felhasználók értékelései.
+Ez visszaköszön a kérdőív eredményeiben is (Függelék D), amelyet a dolgozat során készítettem.
+________________________________________
+2.3. Rendszerarchitektúra és komponensek
+A rendszer három fő rétegből épül fel:
+1.	Adatgyűjtés (scraper-ek)
+o	statikus HTML és beágyazott JSON feldolgozása,
+o	dinamikus, JavaScript által generált adatok kinyerése headless böngészővel.
+2.	Adatfeldolgozás (importer)
+o	JSON payloadok normalizálása,
+o	idempotens feltöltés a Django ORM-en keresztül.
+3.	Megjelenítés (backend + sablonok)
+o	Django modellek, nézetek és sablonok,
+o	ajánlatok összesítése és rendezése,
+o	felhasználói felület.
+2.3.1. Moduláris felépítés
+A Django projekt modulszinten a következő alkalmazásokból áll:
+•	catalog – ételek és éttermek modellei, import parancs,
+•	compare – ajánlatok és mentések, összehasonlító logika,
+•	billing – költségek kezelése,
+•	users – egyedi felhasználó modell,
+•	(esetleg) registration – regisztráció és bejelentkezés.
+A scraper-ek külön scripts/ könyvtárban találhatók, a demo források pedig a data/ mappában.
+2.3.2. Adatfolyam
+Az adatfolyam a következő lépésekből áll:
+1.	A scraper szkriptek (pl. scrape_wolt.py, scrape_foodora_browser.py) feldolgozzák a forrás HTML-eket, és létrehozzák a *.extracted.json fájlokat a data/ könyvtárban.
+2.	Az import parancs futtatása:
+python manage.py import_scraped
+3.	Az importer a JSON payloadokat felolvassa, normalizálja, és frissíti a modelleket (Etel, Etterem, EtteremEtelInfo, EtteremKoltseg).
+4.	A felhasználó a böngészőben megnyitja az alkalmazást (pl. http://127.0.0.1:8000/termek/<id>/), ahol a Django view az adatbázis alapján összeállítja és annotálja az ajánlatokat.
+5.	A sablon a rendezési opciók figyelembevételével jeleníti meg az eredményt.
+________________________________________
+2.4. Adatmodell és adatbázis
+Az adatmodell relációs adatbázisra épül (SQLite), normalizált szerkezetben. A főbb entitások:
+•	Felhasznalo (users.Felhasznalo)
+•	Etel (catalog.Etel)
+•	Etterem (catalog.Etterem)
+•	EtteremEtelInfo (compare.EtteremEtelInfo)
+•	EtteremKoltseg (billing.EtteremKoltseg)
+•	Mentes (compare.Mentes)
+2.4.1. Főbb táblák (rövid leírás)
+FELHASZNÁLÓ (users.Felhasznalo)
+•	id – primer kulcs
+•	nev – felhasználó teljes neve
+•	username, password, email – az AbstractUser mezői
+•	kedvenc_etterem – opcionális, FK → Etterem
+ÉTEL (catalog.Etel)
+•	id – primer kulcs
+•	nev – az étel neve
+•	leiras – szöveges leírás
+•	kategoria – kategória (pl. pizza, burger)
+•	kep_url – az étel képének URL-je
+ÉTTEREM (catalog.Etterem)
+•	id – primer kulcs
+•	nev – étterem neve
+•	cim – címe
+•	platform – platform azonosító (pl. wolt, foodora)
+•	platform_logo_url, platform_url – vizuális és hivatkozási adatok
+ÉTTEREM–ÉTEL INFORMÁCIÓ (compare.EtteremEtelInfo)
+•	id – primer kulcs
+•	etel – FK → Etel
+•	etterem – FK → Etterem
+•	platform – redundáns, de lekérdezés szempontjából hasznos
+•	ar – alapár
+•	szallitas_ido – DurationField vagy normalizált perc érték
+•	felhaszn_ertekelesek – átlagos értékelés
+•	promocio – promóció szövege
+Constraint:
+unique_together = ("etel", "etterem", "platform") – ugyanarra az étel–étterem–platform kombinációra csak egy rekord létezhet.
+ÉTTEREM_KÖLTSÉG (billing.EtteremKoltseg)
+•	id – primer kulcs
+•	etterem – FK → Etterem (opcionális)
+•	etel – FK → Etel (opcionális)
+•	platform – platform (opcionális, platform-szintű költség)
+•	koltseg_tipus – pl. szallitas, csomagolas, borravalo, egyeb
+•	osszeg – költség összege (HUF)
+MENTÉS (compare.Mentes)
+•	id – primer kulcs
+•	felhasznalo – FK → Felhasznalo
+•	etel – FK → Etel
+•	letrehozva – időbélyeg
+Constraint:
+unique_together = ("felhasznalo", "etel") – egy felhasználó egy ételt csak egyszer menthet.
+2.4.2. ER-diagram (szövegesen)
+•	Felhasznalo 1:N Mentes
+•	Etel 1:N EtteremEtelInfo
+•	Etterem 1:N EtteremEtelInfo
+•	Etterem 1:N EtteremKoltseg
+•	Etel 1:N EtteremKoltseg (opcionális)
+•	Etel 1:N Mentes
+A részletes, grafikus ER-diagram a Függelékben található (Graphviz DOT alapján generált ábra).
+________________________________________
+2.5. Scraper-ek és import pipeline
+2.5.1. Statikus scraping – Wolt
+A Wolt mintademó HTML fájlja beágyazott JSON-t tartalmaz, így a scraping folyamata:
+1.	A scripts/scrape_wolt.py megnyitja a HTML fájlt.
+2.	Megkeresi a megfelelő <script> taget, vagy egy inline JSON struktúrát.
+3.	A BeautifulSoup és a json modul segítségével kinyeri a struktúrát.
+4.	Az adatot normalizálja (pl. kulcsnevek egységesítése), majd a data/wolt.html.extracted.json fájlba írja.
+2.5.2. Dinamikus scraping – Foodora (Playwright)
+A Foodora demó oldal JavaScript kódja futás közben hozza létre az adatstruktúrát (pl. let DATA = buildDataset()), ezért egyszerű HTML-parsing nem elég.
+A scripts/scrape_foodora_browser.py folyamat:
+1.	Elindít egy Chromium-alapú böngészőt a Playwright segítségével.
+2.	Betölti a data/foodora.html fájlt.
+3.	Vár, amíg a JS lefut, majd page.evaluate segítségével megpróbálja kiolvasni:
+o	DATA,
+o	vagy window.DATA/globalThis.DATA,
+o	vagy meghívja a buildDataset() függvényt.
+4.	Ha egyik sem működik, fallback-ként DOM-ból (táblázatból) rekonstruálja az ajánlatokat.
+5.	Az eredményt data/foodora.html.extracted.json fájlba menti.
+Részlet a Playwright alapú scrapingből:
+from playwright.sync_api import sync_playwright
+
+def extract_payload(file_url: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(file_url)
+        payload = page.evaluate(
+            '() => (typeof DATA !== "undefined" ? DATA : null)'
+        )
+        browser.close()
+    return payload
+2.5.3. Szállítási idő normalizálása
+A forrásadatok gyakran szöveges formátumban adják meg a szállítási időt, például:
+•	„25–35 perc”
+•	„30 perc”
+•	„1 óra 20 perc”
+A numerikus rendezéshez ezeket percre konvertált értékké kell alakítani. Erre szolgál a parse_delivery függvény:
+import re
+
+def parse_delivery(text: str):
+    if not text:
+        return None
+    text = text.strip().lower()
+
+    # órák
+    hours = 0
+    mins = 0
+    h_match = re.search(r"(\d+)\s*ó(ra)?", text)
+    if h_match:
+        hours = int(h_match.group(1))
+
+    # percek
+    m_match = re.search(r"(\d+)\s*perc", text)
+    if m_match:
+        mins = int(m_match.group(1))
+
+    if hours or mins:
+        return hours * 60 + mins
+
+    # intervallum: "25–35 perc"
+    rng = re.search(r"(\d+)\s*[–\-]\s*(\d+)", text)
+    if rng:
+        return int(rng.group(1))
+
+    s = re.search(r"(\d+)", text)
+    if s:
+        return int(s.group(1))
+
+    return None
+A függvény az intervallum alsó határát használja rendezéshez, ami a gyakorlati döntéstámogatás szempontjából elfogadható közelítés.
+2.5.4. Import pipeline – idempotens feltöltés
+Az import pipeline kulcsa a catalog/management/commands/import_scraped.py parancs, amely a data/*.extracted.json fájlokat dolgozza fel.
+Egyszerűsített részlet:
+from decimal import Decimal
+from catalog.models import Etel, Etterem
+from compare.models import EtteremEtelInfo
+from billing.models import EtteremKoltseg
+
+def import_offers(payload):
+    for p in payload.get('offers', []):
+        etel, _ = Etel.objects.get_or_create(
+            nev=p['food_name'].strip()
+        )
+        etterem, _ = Etterem.objects.get_or_create(
+            nev=p['restaurant_name'].strip(),
+            defaults={'platform': p.get('platform')}
+        )
+
+        EtteremEtelInfo.objects.update_or_create(
+            etel=etel,
+            etterem=etterem,
+            platform=p.get('platform'),
+            defaults={
+                'ar': Decimal(p.get('price') or 0),
+                'szallitas_ido': parse_delivery(p.get('delivery')),
+                'promocio': p.get('promotion')
+            }
+        )
+
+    for c in payload.get('costs', []):
+        EtteremKoltseg.objects.update_or_create(
+            etterem_id=c.get('etterem_id'),
+            platform=c.get('platform'),
+            koltseg_tipus=c.get('type'),
+            defaults={'osszeg': Decimal(c.get('amount', 0))}
+        )
+Az update_or_create használata biztosítja, hogy ugyanazon kulcs (pl. étel–étterem–platform) esetén a rekord frissüljön, ne új jöjjön létre – ez garantálja az idempotenciát.
+________________________________________
+2.6. Backend (Django) megvalósítás
+2.6.1. Technológiák és projektstruktúra
+•	Programnyelv: Python 3.11
+•	Web framework: Django
+•	Adatbázis: SQLite (fejlesztéshez), a jövőben javasolt PostgreSQL-re átállni
+•	ORM: Django ORM, aggregációk és annotációk használatával
+Fejlesztési környezet (Windows, PowerShell):
+python -m venv .venv
+. .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+2.6.2. Ajánlatok összköltségének számítása
+Az egyik legfontosabb backend-feladat a teljes ár kiszámítása, amely az alapárból és az EtteremKoltseg táblában található költségekből áll.
+Erre Subquery és annotációk használhatók:
+from django.db.models import Sum, F, Subquery, OuterRef, Value
+from django.db.models.functions import Coalesce
+from compare.models import EtteremEtelInfo
+from billing.models import EtteremKoltseg
+
+restaurant_sum_subq = (
+    EtteremKoltseg.objects
+    .filter(etterem=OuterRef('etterem_id'))
+    .values('etterem')
+    .annotate(s=Sum('osszeg'))
+    .values('s')
+)
+
+platform_sum_subq = (
+    EtteremKoltseg.objects
+    .filter(platform=OuterRef('platform'), etterem__isnull=True)
+    .values('platform')
+    .annotate(s=Sum('osszeg'))
+    .values('s')
+)
+
+offers = EtteremEtelInfo.objects.filter(etel_id=etel_id)
+offers = offers.annotate(
+    _rest_sum=Subquery(restaurant_sum_subq),
+    _plat_sum=Subquery(platform_sum_subq),
+)
+offers = offers.annotate(
+    cost_sum=Coalesce(F('_rest_sum'), F('_plat_sum'), Value(0))
+)
+offers = offers.annotate(
+    total_price=F('ar') + F('cost_sum')
+)
+Az így annotált total_price mező már tartalmazza az összes rejtett költséget is, így egyszerűen rendezhető és megjeleníthető.
+2.6.3. Nézet (View) – ajánlatok megjelenítése
+Az ajánlatokat egy osztály alapú view (TemplateView) készíti elő:
+from django.views.generic import TemplateView
+
+class OffersForEtelView(TemplateView):
+    template_name = 'compare/offers_for_etel.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        etel_id = self.kwargs.get('etel_id')
+
+        # ... az előzőekben bemutatott annotációk ...
+
+        sort = self.request.GET.get('sort')
+        direction = self.request.GET.get('dir', 'asc')
+
+        if sort == 'ar':
+            offers = offers.order_by(
+                ('' if direction == 'asc' else '-') + 'total_price'
+            )
+        elif sort == 'szallitas':
+            offers = offers.order_by(
+                ('' if direction == 'asc' else '-') + 'min_minutes'
+            )
+
+        ctx['offers'] = offers
+        ctx['current_sort'] = sort
+        ctx['current_dir'] = direction
+        return ctx
+Ez a megoldás jól szemlélteti a backend–frontend integráció alapelvét: a backend az adatokat annotálva, rendezhető formában adja át a sablonnak, a sablon pedig a query paraméterek segítségével teszi interaktívvá a felületet.
+________________________________________
+2.7. Frontend és felhasználói felület
+2.7.1. Felhasználói nézetek
+A jelenlegi prototípus egyszerű, Django sablonokra épülő frontenddel rendelkezik. A legfontosabb nézetek:
+•	Termékoldal (/termek/<id>/)
+o	Az adott étel alapadatai (név, leírás, kép).
+o	Az ajánlatok táblázatos formában:
+	platform logó,
+	étterem neve,
+	alapár,
+	összesített ár (alapár + költségek),
+	szállítási idő,
+	promóció,
+	link az eredeti platformra.
+•	Mentett ételek (/mentett-etelek/)
+o	A bejelentkezett felhasználó által mentett ételek listája.
+o	Mini-képek, link a termékoldalra.
+2.7.2. Rendezés és interakciók
+A táblázat fejlécei kattinthatók, például:
+•	Ár szerint rendezés: ?sort=ar&dir=asc vagy ?sort=ar&dir=desc
+•	Szállítási idő szerint: ?sort=szallitas&dir=asc
+A rendezés logikája a backendben valósul meg (lásd az előző alfejezetet), a frontend csak a linkeket állítja elő. Ez egyszerű, de jól demonstrálja az interaktív, szerveroldali renderelésű alkalmazások működését.
+2.7.3. Design szempontok
+A design célja:
+•	olvashatóság,
+•	kontrasztos megjelenés,
+•	mobilon és asztali nézetben is használható elrendezés.
+Nem cél egy komplex, SPA-jellegű front-end keretrendszer (pl. React vagy Vue) bemutatása – a hangsúly a teljes adatpipeline és a Django alapú megoldás demonstrációján van.
+________________________________________
+2.8. Tesztelés, teljesítmény és mérőszámok
+2.8.1. Manuális tesztelés
+A projekt során elsősorban manuális (exploratív) tesztelést végeztem. A főbb forgatókönyvek:
+1.	Importer idempotencia
+o	Ugyanazt a data/*.extracted.json fájlt kétszer egymás után importálom.
+o	Elvárás: nincs duplikáció, az árak és egyéb mezők frissülnek.
+2.	Rendezés és annotáció ellenőrzése
+o	Egy termékoldalon kipróbálom az ár és szállítás szerinti rendezést.
+o	Ellenőrzöm, hogy a táblázatban látható „Összesített ár” megfelel az adatbázisban tárolt értékeknek.
+3.	Költség-számítás tesztelése
+o	Új EtteremKoltseg rekordok felvétele (platform-szintű és étterem-szintű).
+o	Ellenőrzöm, hogy a view helyes cost_sum és total_price értékeket számolja.
+4.	Mentés funkció
+o	Bejelentkezett felhasználóként ételek mentése, törlése.
+o	Ellenőrzöm, hogy a mentett ételek listája a várt módon változik.
+2.8.2. Unit tesztek (példák)
+A legkézenfekvőbb unit teszt célpont a parse_delivery függvény:
+def test_parse_delivery_hours_and_minutes():
+    assert parse_delivery("1 óra 20 perc") == 80
+    assert parse_delivery("25–35 perc") == 25
+    assert parse_delivery("30 perc") == 30
+    assert parse_delivery("45") == 45
+További tesztek írhatók az import logikára és a költség aggregációra.
+2.8.3. Teljesítmény és skálázhatóság
+Fejlesztési környezetben SQLite adatbázist használtam, amely kisebb adatmennyiségnél megfelelő, azonban nagyobb adatkészletnél:
+•	javasolt PostgreSQL-re váltani,
+•	érdemes indexelni a gyakran használt mezőket (pl. etel, etterem, platform),
+•	szükség esetén cache-réteget (pl. Redis) bevezetni az ajánlat-listákra.
+________________________________________
+2.9. Biztonság és jogosultságkezelés
+2.9.1. Django beépített jogosultságai
+A rendszer a Django beépített felhasználói modelljére és jogosultsági rendszerére épül:
+•	is_staff – admin felülethez való hozzáférés,
+•	is_superuser – minden jogosultság megadása.
+Ezek segítségével különböztethető meg az admin és a normál felhasználó.
+2.9.2. Adattulajdon és jogosultságok
+A rendszerben egyes adatokhoz (például Mentes rekordok) természetes adattulajdonos tartozik:
+•	a Mentes rekord tulajdonosa az a felhasználó, aki létrehozta,
+•	csak az adott felhasználó (vagy admin) törölheti vagy módosíthatja.
+Backend ellenőrzésre példa:
+from django.core.exceptions import PermissionDenied
+
+def delete_mintes(request, pk):
+    mentes = get_object_or_404(Mentes, pk=pk)
+    if mentes.felhasznalo != request.user and not request.user.is_staff:
+        raise PermissionDenied("Nincs jogosultságod a törléshez.")
+    mentes.delete()
+Fontos, hogy a jogosultság-ellenőrzés mindig a backendben is megtörténjen; a front-end gombok elrejtése önmagában nem jelent biztonsági védelmet.
+2.9.3. Adatvédelem és etikai szempontok
+A projekt nem tárol érzékeny személyes adatokat (például egészségügyi adatok, bankkártya adatok). A felhasználókról gyakorlatilag csak a következőket kezeli:
+•	név (opcionális),
+•	felhasználónév,
+•	email cím (opcionális),
+•	mentett ételek listája.
+Production környezetben ugyanakkor fontos lenne:
+•	HTTPS használata,
+•	titkosított környezeti változók (SECRET_KEY, adatbázis jelszó stb.),
+•	naplózás és auditálás, különösen admin műveleteknél.
+________________________________________
+3. ÖSSZEFOGLALÁS ÉS SZEMÉLYES REFLEXIÓ
+A szakdolgozat célja egy olyan demonstrációs jellegű webalkalmazás elkészítése volt, amely különböző ételrendelő platformok ajánlatait hasonlítja össze, és ezzel együtt bemutatja:
+•	a web-scraping gyakorlati megvalósítását,
+•	az adattisztítás és normalizálás módszereit,
+•	egy Django-alapú backend és egy egyszerű frontend integrációját,
+•	az idempotens import és az aggregált számítások használatát a Django ORM-mel.
+A projekt kezdetén a webfejlesztés, a Django, az SQLite, valamint a Playwright-alapú scraping mind új technológiák voltak számomra. A munkám során lépésről lépésre tanultam meg:
+•	hogyan épül fel egy Django projekt és alkalmazás-struktúra,
+•	mit jelent az ORM használata, és hogyan lehet vele összetett, aggregált lekérdezéseket megfogalmazni,
+•	hogyan lehet egy HTML oldalból statikusan adatot kinyerni (BeautifulSoup, JSON),
+•	hogyan működik egy headless böngésző (Playwright), és hogyan lehet vele runtime JS objektumokat kiolvasni,
+•	hogyan kell egy teljes adatfolyamot – scraping → JSON → import → adatbázis → view → sablon – végig vinni.
+A legnagyobb meglepetést számomra a backend és a frontend összekapcsolása okozta. Korábban nem láttam élő példát arra, hogyan lesz egy adatbázisban tárolt modellből egy sablonban megjelenített HTML táblázat. A projekt során megértettem a model → view → template láncolatot, és azt, hogy a backend annotációi hogyan jelennek meg a felhasználó számára konkrét, rendezhető adatokként.
+Néhány technikai rész különösen nehéz volt:
+•	a szallitas_ido mező normalizálása (különböző szöveges formátumok kezelése),
+•	a Playwright környezet beállítása Windows alatt,
+•	az idempotens import megvalósítása úgy, hogy se duplikáció ne keletkezzen, se adatvesztés.
+Ugyanakkor ezek a kihívások jelentették a legtöbb tanulási lehetőséget is. A szemléletmódom jelentősen fejlődött a „csak kódolok” típusú gondolkodásmódról az „adatfolyamot és architektúrát tervezek” irányába.
+A projekt jelenlegi formájában egy működő, demonstrációs célú alkalmazás, amely:
+•	képes több platform adatait egységes modellbe rendezni,
+•	átlátható összehasonlító nézetet biztosít,
+•	bővíthető további funkciókkal (pl. publikus REST API, SPA frontend, cache-réteg).
+A jövőbeni lehetséges fejlesztések:
+•	adatbázis migráció PostgreSQL-re, skálázhatóság javítása,
+•	Redis cache bevezetése a gyakran lekért nézetekhez,
+•	publikus API készítése az ajánlatokhoz,
+•	modern, JavaScript-alapú SPA frontend (pl. React) bevezetése,
+•	árfigyelő és értesítés funkció (email, push notification).
+Összességében a szakdolgozat elkészítése során nemcsak egy konkrét alkalmazást építettem meg, hanem megtanultam, hogyan kell egy valós, több komponensből álló fejlesztési projektet a nulláról felépíteni.
+________________________________________
+4. IRODALOMJEGYZÉK
+Az irodalomjegyzék IEEE-stílusú hivatkozásokat tartalmaz, elsősorban hivatalos dokumentációkra és technikai forrásokra támaszkodva.
+[1] Python Software Foundation, Python 3 Documentation. [Online]. Available: https://docs.python.org/3/
+[2] Django Software Foundation, Django Documentation. [Online]. Available: https://docs.djangoproject.com/
+[3] Microsoft & Contributors, Playwright for Python. [Online]. Available: https://playwright.dev/python/
+[4] SQLite Consortium, SQLite Documentation. [Online]. Available: https://www.sqlite.org/docs.html
+[5] K. Reitz et al., Requests: HTTP for Humans. [Online]. Available: https://docs.python-requests.org/
+[6] L. Richardson, Beautiful Soup Documentation. [Online]. Available: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+[7] Concordia University Library, IEEE Citation Guide. [Online]. Available: https://library.concordia.ca/help/citing/ieee.php
+(A végleges dolgozatban kiegészíthető további, scrapinggel, döntéstámogató rendszerekkel és UX-szel foglalkozó cikkekkel, ha szeretnéd.)
+________________________________________
+5. FÜGGELÉK
+A Függelékben helyezhetők el a nagyobb táblázatok, kódrészletek, diagramok és a kérdőív.
+A. SQL CREATE TABLE minták
+(ahogy már előkészítetted)
+B. ER-diagram (Graphviz DOT és generált ábra)
+A DOT fájl például a következő:
+digraph ER {
+  rankdir=LR;
+  node [shape=record,fontname="Helvetica"];
+
+  Felhasznalo [label="{Felhasznalo|id PK\nusername\nemail\n...}"];
+  Etel [label="{Etel|id PK\nnev\nleiras\nkategoria\nkep_url}"];
+  Etterem [label="{Etterem|id PK\nnev\ncim\nplatform\nplatform_url}"];
+  EtteremEtelInfo [label="{EtteremEtelInfo|id PK\netel_id FK\netterem_id FK\nplatform\nar\nszallitas_ido}"];
+  EtteremKoltseg [label="{EtteremKoltseg|id PK\netterem_id FK?\netel_id FK?\nplatform?\nkoltseg_tipus\nosszeg}"];
+  Mentes [label="{Mentes|id PK\nfelhasznalo_id FK\netel_id FK\nletrehozva}"];
+
+  Felhasznalo -> Mentes [label="1:N"];
+  Etel -> EtteremEtelInfo [label="1:N"];
+  Etterem -> EtteremEtelInfo [label="1:N"];
+  Etterem -> EtteremKoltseg [label="1:N"];
+  Etel -> EtteremKoltseg [label="1:N (optional)"];
+  Etel -> Mentes [label="1:N"];
+}
+C. Kódrészletek (importer, nézetek, tesztek)
+D. Kérdőív szövege és összefoglaló eredmények
+– ahogy már megfogalmaztad, 25 válasszal, a fő funkciók kiemelésével.
+________________________________________
+6. KÖSZÖNETNYILVÁNÍTÁS
+Ezúton szeretném megköszönni Major Sándor Roland tanársegédnek, témavezetőmnek a szakdolgozat elkészítése során nyújtott folyamatos szakmai támogatást. Heti rendszerességgel segített iránymutatással, kódfelülvizsgálattal és gyakorlati tanácsokkal, amelyek nélkül ez a projekt ilyen formában nem valósulhatott volna meg.
+Külön köszönet illeti a családomat és barátaimat, akik részt vettek a rendszer tesztelésében, ötleteikkel hozzájárultak a funkciók kialakításához, és végig támogattak abban, hogy az ötletemből valódi, működő alkalmazás szülessen.
+
+"
