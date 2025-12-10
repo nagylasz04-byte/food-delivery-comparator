@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
-from django.db.models import Q, Min, Count, Avg, F, Value, DecimalField, Case, When, Subquery, OuterRef, Sum
+from django.db.models import Q, Min, Count, Avg, F, Value, DecimalField, Case, When, Subquery, OuterRef, Sum, Prefetch
 from django.db.models.functions import Coalesce
 
 from foodcompare.mixins import LoginRequired, WritePermissionRequired, StaffRequired
@@ -146,6 +146,12 @@ class EtelSearchView(ListView):
                 offer_count=Count(f"{REL}", distinct=True),
                 avg_rating=Avg(f"{REL}__felhaszn_ertekelesek"),
             )
+            .prefetch_related(
+                Prefetch(
+                    'etterem_info',
+                    queryset=EtteremEtelInfo.objects.select_related('etterem')
+                )
+            )
         )
 
         if q:
@@ -154,6 +160,13 @@ class EtelSearchView(ListView):
                 | Q(leiras__icontains=q)
                 | Q(kategoria__icontains=q)
             )
+
+        # City filter
+        city = self.request.GET.get("city", "").strip()
+        if city:
+            base = base.filter(
+                etterem_info__etterem__cim__icontains=city
+            ).distinct()
 
         ordering = {
             "alap": ("nev",),
@@ -169,6 +182,17 @@ class EtelSearchView(ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
         ctx["sort"] = self.request.GET.get("sort", "alap")
+        ctx["city"] = self.request.GET.get("city", "").strip()
+        
+        # Collect all unique cities from available restaurants
+        from catalog.models import Etterem
+        cities = set()
+        for etterem in Etterem.objects.exclude(cim="").exclude(cim__isnull=True):
+            c = etterem.get_city()
+            if c:
+                cities.add(c)
+        ctx["available_cities"] = sorted(cities)
+        
         # saved etel ids for the current user (to render save/unsave buttons)
         if self.request.user.is_authenticated:
             ctx["saved_etel_ids"] = set(Mentes.objects.filter(felhasznalo=self.request.user).values_list("etel_id", flat=True))

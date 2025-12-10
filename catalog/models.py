@@ -1,4 +1,5 @@
 from django.db import models
+import re
 
 
 class Etel(models.Model):
@@ -54,3 +55,44 @@ class Etterem(models.Model):
             "egyeb": "#",
         }
         return defaults.get(self.platform, "#")
+
+    def get_city(self) -> str:
+        """Attempt to extract a city name from the `cim` (address) field.
+
+        Strategy:
+        - If the first token of the address is a numeric postal code, use the next
+          token as the city.
+        - Otherwise take the very first word of the `cim` (the repo requirement
+          is that the city is the first word in the address) and return it.
+        - If nothing reliable found, fall back to searching for 'Budapest' or
+          the last address segment.
+        """
+        if not self.cim:
+            return ""
+        txt = self.cim.strip()
+        if not txt:
+            return ""
+        # Primary rule: first word is the city (handle leading postal codes)
+        tokens = re.split(r"\s+", txt)
+        if tokens:
+            first = tokens[0].strip().strip(',;')
+            # If the first token is a postal code (digits), use the next token
+            if re.match(r"^\d{3,6}$", first) and len(tokens) > 1:
+                first = tokens[1].strip().strip(',;')
+            # clean trailing punctuation
+            first = re.sub(r"[,:;.-]+$", "", first).strip()
+            if first:
+                return first
+
+        # Fallbacks
+        if "Budapest" in txt:
+            return "Budapest"
+
+        parts = [p.strip() for p in re.split(r"[,;\n]", txt) if p.strip()]
+        if parts:
+            candidate = parts[-1]
+            candidate = re.sub(r"^\s*\d{3,6}\s+", "", candidate)
+            candidate = candidate.split("-")[0].strip()
+            return candidate
+
+        return ""

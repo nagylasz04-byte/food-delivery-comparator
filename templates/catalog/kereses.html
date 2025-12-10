@@ -2,14 +2,20 @@
 {% load static %}
 {% block content %}
 
-<form method="get" action="{% url 'catalog:kereses' %}" class="searchbar" style="display:flex; gap:.5rem; align-items:center; margin-bottom:1rem;">
-  <input type="text" name="q" value="{{ q }}" placeholder="Keresés ételekre..." style="flex:1; padding:.6rem .8rem; border:1px solid #ddd; border-radius:8px;">
+<form method="get" action="{% url 'catalog:kereses' %}" class="searchbar" style="display:flex; gap:.5rem; align-items:center; margin-bottom:1rem; flex-wrap:wrap;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Keresés ételekre..." style="flex:1; min-width:200px; padding:.6rem .8rem; border:1px solid #ddd; border-radius:8px;">
   <select name="sort" style="padding:.55rem .6rem; border:1px solid #ddd; border-radius:8px;">
     <option value="alap" {% if sort == "alap" %}selected{% endif %}>Alapértelmezett</option>
     <option value="olcso" {% if sort == "olcso" %}selected{% endif %}>Olcsók</option>
     <option value="draga" {% if sort == "draga" %}selected{% endif %}>Drágák</option>
     <option value="ertekeles" {% if sort == "ertekeles" %}selected{% endif %}>Értékelés</option>
     <option value="nev" {% if sort == "nev" %}selected{% endif %}>Név [A–Z]</option>
+  </select>
+  <select name="city" style="padding:.55rem .6rem; border:1px solid #ddd; border-radius:8px;">
+    <option value="">Összes város</option>
+    {% for c in available_cities %}
+      <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
   </select>
   <button type="submit" class="btn">Keresés</button>
 </form>
@@ -51,6 +57,25 @@
         <div style="color:#444; line-height:1.35;">
           {{ etel.leiras|default:"Nincs leírás."|truncatechars:220 }}
         </div>
+
+        {# List of restaurants where this dish is available (deduplicated by name+city, no prices) #}
+        {% if etel.etterem_info.all %}
+          <div style="margin-top:.6rem; font-size:13px; color:#444;">
+            <strong>Elérhető itt:</strong>
+            <ul style="list-style:none; padding:0; margin:.35rem 0 0 0;">
+              {% regroup etel.etterem_info.all by etterem.nev as grouped_by_name %}
+              {% for group in grouped_by_name %}
+                {% regroup group.list by etterem.get_city as grouped_by_city %}
+                {% for city_group in grouped_by_city %}
+                  <li style="display:flex; gap:.5rem; align-items:center; margin-bottom:.25rem;">
+                    <span style="font-weight:600; color:#333;">{{ group.grouper }}</span>
+                    <span style="color:#666; font-size:12px;">— {{ city_group.grouper|default:"város ismeretlen" }}</span>
+                  </li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
       </div>
 
       <!-- jobb hasáb -->
