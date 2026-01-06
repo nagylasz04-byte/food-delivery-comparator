@@ -12,6 +12,27 @@ Rövid összefoglaló a scraper-ekről
   - Headless (screen-scraper) — `scripts/scrape_foodora_browser.py` (Playwright szükséges): a böngésző futtatja a JS-t és a ténylegesen renderelt adatot olvassa ki.
   - Fallback / generator — `scripts/scrape_foodora.py --regen`: ha nincs Playwright, vagy reprodukálható random adatra van szükség.
 
+Használt technológiák
+----------------------
+
+- Python 3: standard könyvtárak (pathlib, sys, json, re, argparse, subprocess, traceback, random)
+- Django 5: admin, auth, sessions, CSRF, messages, staticfiles, URL‑routing, ORM, WSGI, Django Templates
+- SQLite: alapértelmezett fejlesztői adatbázis
+- BeautifulSoup4: statikus HTML‑ből payload kinyerés (scripts/extract_payload.py)
+- Playwright for Python: opcionális headless böngészős scraping (scripts/scrape_foodora_browser.py)
+- PowerShell: fejlesztői pipeline és automatizálás (run_dev.ps1, run_scrape_and_import.ps1)
+- Frontend: HTML sablonok (templates/), saját CSS (static/css/app.css), JSON adatfájlok (data/)
+- Regex: beágyazott JS/JSON payload felismerése és normalizálása (scripts/extract_payload.py)
+
+Függőségek (requirements.txt)
+------------------------------
+
+- Django 5 (`Django`, `asgiref`, `sqlparse`, `tzdata`)
+- BeautifulSoup4 (`beautifulsoup4`) — statikus HTML parszoláshoz
+- Playwright (`playwright`) — opcionális headless böngészős scrapinghez
+
+Megjegyzés: A korábban listázott, de nem használt csomagok eltávolításra kerültek a `requirements.txt`-ből. A Playwright és a BeautifulSoup transzitív függőségeit a `pip` automatikusan feltelepíti.
+
 Előkészületek
 -------------
 
