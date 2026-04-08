@@ -1,15 +1,15 @@
 {% extends "_base.html" %}
-{% block content %}
-<h1>Oldalak (site index)</h1>
-<p>Az alábbi, paraméterezés nélküli útvonalak találhatók a projektben. Kattints a megnyitáshoz.</p>
-<ul>
-  {% for p in paths %}
-    <li><a href="{{ p }}">{{ p }}</a></li>
-  {% empty %}
-    <li>Nincs listázható oldal.</li>
-  {% endfor %}
-</ul>
 
-<hr>
-<p><a href="{% url 'home' %}">Vissza a kezdőlapra</a></p>
+{% block content %}
+	<h1>Főoldal — Site index</h1>
+	<h2>Elérhető útvonalak)</h2>
+	<ul>
+		{% for p in paths %}
+			<li><a href="{{ p }}">{{ p }}</a></li>
+		{% empty %}
+			<li>Nincsenek elérhető, nem-paraméterezett útvonalak.</li>
+		{% endfor %}
+	</ul>
+
 {% endblock %}
+
