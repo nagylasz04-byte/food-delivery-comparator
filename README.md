@@ -1,4 +1,3 @@
-```markdown
 Food Delivery Comparator — Használati útmutató
 =============================================
 
@@ -20,7 +19,7 @@ Használt technológiák
 - SQLite: alapértelmezett fejlesztői adatbázis
 - BeautifulSoup4: statikus HTML‑ből payload kinyerés (scripts/extract_payload.py)
 - Playwright for Python: opcionális headless böngészős scraping (scripts/scrape_foodora_browser.py)
-- PowerShell: fejlesztői pipeline és automatizálás (run_dev.ps1, run_scrape_and_import.ps1)
+- PowerShell: fejlesztői pipeline és automatizálás (run_scrape_and_import.ps1, opcionálisan run_dev.ps1 ha helyben elérhető)
 - Frontend: HTML sablonok (templates/), saját CSS (static/css/app.css), JSON adatfájlok (data/)
 - Regex: beágyazott JS/JSON payload felismerése és normalizálása (scripts/extract_payload.py)
 
@@ -50,11 +49,15 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 ```powershell
 pip install -r requirements.txt
 ```
+VAGY
+```powershell
+python -m pip install -r requirements.txt
+```
 
-Ha Playwright-ot használod a Foodora headless scrapperhez:
+Ha Playwright-ot használod a Foodora headless scraperhez:
 
 ```powershell
-pip install playwright
+python -m pip install playwright
 python -m playwright install
 ```
 
@@ -82,10 +85,9 @@ Scrape — Foodora (headless / a megjelenített adatokból):
 python -m pip install playwright
 python -m playwright install
 
-C
+python .\scripts\scrape_foodora_browser.py
 # kimenet: data/foodora.html.extracted.json
 ```
-python .\scripts\scrape_foodora_browser.py
 
 Scrape — Foodora (fallback / szerver-oldali generátor):
 
@@ -98,6 +100,12 @@ Importálás az adatbázisba:
 
 ```powershell
 python manage.py import_scraped
+```
+
+Teljes Python-alapú pipeline (PowerShell helper nélkül):
+
+```powershell
+python scripts/run_pipeline.py
 ```
 
 Fejlesztői szerver:
@@ -135,6 +143,27 @@ Adatbázis reset (fejlesztés alatt):
 # Windows PowerShell
 Remove-Item db.sqlite3
 python manage.py migrate
+```
+
+Gyors parancsok
+---------------
+
+- Csak scrape + import (PowerShell):
+
+```powershell
+.\run_scrape_and_import.ps1
+```
+
+- Teljes pipeline Pythonból:
+
+```powershell
+python scripts/run_pipeline.py
+```
+
+- Opcionális helper (ha nálad létezik):
+
+```powershell
+.\run_dev.ps1 -ResetDB -Regen -RunServer
 ```
 
 Migrations workflow — hogyan kerüld el a "model changes not reflected in a migration" hibát
@@ -195,13 +224,3 @@ Tippek a speciális esetekhez:
 - Ha véletlenül módosítottad a modellkódot (pl. elgépelés), állítsd vissza a kódot és futtasd újra a dry-run-t mielőtt migrációt készítesz.
 
 Ezzel a folyamattal elkerülöd, hogy a modellek és az adatbázis sémája szinkronon kívül legyenek, és a csapatod minden tagja ugyanazokat a migrációs fájlokat kapja meg a PR-ben.
-
-
-További megjegyzések
---------------------
-
-- A `run_dev.ps1` (ha jelen van) automatizálhatja a migrate → scrape → import → runserver lépéseket.
-- A `DOCS/PROJECT_DOCUMENTATION.md` és `DOCS/DOKUMENTACIO.md` részletesen leírják a pipeline-t, a RBAC döntéseket és a védéshez használható Q&A részt.
-
-Ha szeretnéd, hozzáadok még egy rövid szakaszt a CI beállításáról (GitHub Actions) vagy létrehozok egy `run_pipeline.ps1` scriptet, ami egy parancsból végigviszi a teljes folyamatot (scrape → import → sanity-check). Jelezd, melyiket csináljam következőnek.
-``` 
