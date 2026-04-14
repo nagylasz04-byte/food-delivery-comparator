@@ -19,8 +19,8 @@ Használt technológiák
 - SQLite: alapértelmezett fejlesztői adatbázis
 - BeautifulSoup4: statikus HTML‑ből payload kinyerés (scripts/extract_payload.py)
 - Playwright for Python: opcionális headless böngészős scraping (scripts/scrape_foodora_browser.py)
-- PowerShell: fejlesztői pipeline és automatizálás (run_scrape_and_import.ps1, opcionálisan run_dev.ps1 ha helyben elérhető)
-- Frontend: HTML sablonok (templates/), saját CSS (static/css/app.css), JSON adatfájlok (data/)
+- PowerShell: fejlesztői pipeline és automatizálás (run_scrape_and_import.ps1)
+- Frontend: HTML sablonok (templates/), sablonokban definiált stílusok, JSON adatfájlok (data/)
 - Regex: beágyazott JS/JSON payload felismerése és normalizálása (scripts/extract_payload.py)
 
 Függőségek (requirements.txt)
@@ -102,12 +102,6 @@ Importálás az adatbázisba:
 python manage.py import_scraped
 ```
 
-Teljes Python-alapú pipeline (PowerShell helper nélkül):
-
-```powershell
-python scripts/run_pipeline.py
-```
-
 Fejlesztői szerver:
 
 ```powershell
@@ -145,17 +139,11 @@ Remove-Item db.sqlite3
 python manage.py migrate
 ```
 
-Gyors parancsok
+Gyors parancs
 ---------------
 
 - Csak scrape + import (PowerShell):
 
 ```powershell
 .\run_scrape_and_import.ps1
-```
-
-- Teljes pipeline Pythonból:
-
-```powershell
-python scripts/run_pipeline.py
 ```
