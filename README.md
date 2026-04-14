@@ -160,12 +160,6 @@ Gyors parancsok
 python scripts/run_pipeline.py
 ```
 
-- Opcionális helper (ha nálad létezik):
-
-```powershell
-.\run_dev.ps1 -ResetDB -Regen -RunServer
-```
-
 Migrations workflow — hogyan kerüld el a "model changes not reflected in a migration" hibát
 --------------------------------------------------------------------------
 
